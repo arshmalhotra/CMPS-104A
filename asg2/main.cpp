@@ -16,7 +16,7 @@ using namespace std;
 #include "lyutils.h"
 #include "string_set.h"
 
-const string cpp_name = "/usr/bin/cpp";
+string cpp_name = "/usr/bin/cpp";
 string cpp_command;
 
 void cpp_popen (const char* filename) {
@@ -34,7 +34,7 @@ void cpp_popen (const char* filename) {
   }
 }
 
-void cpp_close () {
+void cpp_pclose () {
   int pclose_rc = pclose (yyin);
   eprint_status (cpp_command.c_str(), pclose_rc);
   if (pclose_rc != 0) exec::exit_status = EXIT_FAILURE;
@@ -46,6 +46,7 @@ void scan_opts (int argc, char** argv) {
   yydebug = 0;
   lexer::interactive = isatty (fileno (stdin))
                    and isatty (fileno (stdout));
+  int option;
   while((option = getopt (argc, argv, "@:D:ly")) != EOF) {
     switch (option) {
       case 'l':
@@ -55,13 +56,13 @@ void scan_opts (int argc, char** argv) {
         yydebug = 1;
         break;
       case 'D':
-        CPP = CPP + " -D " + optarg;
+        cpp_name = cpp_name + " -D " + optarg;
         break;
       case '@':
         set_debugflags(optarg);
         break;
       default:
-        print_usage();
+        errprintf ("bad option (%c)\n", optopt);
         break;
     }
   }
