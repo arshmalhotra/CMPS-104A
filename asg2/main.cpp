@@ -101,8 +101,8 @@ void cpp_popen (const char* execname, const char* filename) {
       fprintf (stderr, "-- popen (%s), fileno(yyin) = %d\n",
                cpp_command.c_str(), fileno (yyin));
     }
-    cpplines (yyin, filename);
-    string fname = std::string(filename);
+    cpplines (yyin, basename(filename));
+    string fname = std::string(basename(filename));
     string strFilename = fname.substr(0, fname.size()-3) + ".str";
     const char* strFile = strFilename.c_str();
     FILE* pipeout = fopen(strFile, "w+");
@@ -156,7 +156,7 @@ void scan_opts (int argc, char** argv) {
     print_usage();
   }
   const char* execname = basename (argv[0]);
-  const char* filename = optind == argc ? "-" : basename (argv[optind]);
+  const char* filename = optind == argc ? "-" : argv[optind];
   cpp_popen (execname, filename);
 }
 
