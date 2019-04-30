@@ -9,7 +9,7 @@ extern FILE* outFile;
 
 int scanner_token (int symbol) {
   yylval = new astree (symbol, scanner::lloc, yytext);
-  yylval->print_tok(outFile, yylval, 0);
+  yylval->print_tok(outFile, yylval);
   return symbol;
 }
 

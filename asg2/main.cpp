@@ -27,7 +27,7 @@ string cpp_command;
 void print_usage() {
   errprintf ("Usage: %s [-ly] [-@(flags)...] [-D(string)] filename\n",
              exec::execname.c_str());
-  exit (exit_status);
+  exit (EXIT_FAILURE);
 }
 
 void chomp (char* string, char delim) {
@@ -89,12 +89,13 @@ void cpp_pclose () {
   if (pclose_rc != 0) exec::exit_status = EXIT_FAILURE;
 }
 
-void cpp_popen (const char* filename) {
+void cpp_popen (const char* execname, const char* filename) {
   cpp_command = CPP + " " + filename;
   yyin = popen (cpp_command.c_str(), "r");
   if (yyin == nullptr) {
-    syserrprintf (cpp_command.c_str());
-    exit (exec::exit_status);
+    exit_status = EXIT_FAILURE;
+    fprintf (stderr, "%s: %s: %s\n",
+             execname, command.c_str(), strerror (errno));
   }else {
     if (yy_flex_debug) {
       fprintf (stderr, "-- popen (%s), fileno(yyin) = %d\n",
@@ -154,12 +155,12 @@ void scan_opts (int argc, char** argv) {
   if (optind > argc) {
     print_usage();
   }
+  const char* execname = basename (argv[0]);
   const char* filename = optind == argc ? "-" : argv[optind];
-  cpp_popen (filename);
+  cpp_popen (execname, filename);
 }
 
 int main (int argc, char** argv) {
-  const char* execname = basename (argv[0]);
   exit_status = EXIT_SUCCESS;
 
   scan_opts(argc, argv);
