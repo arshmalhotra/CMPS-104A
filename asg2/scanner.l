@@ -8,7 +8,7 @@
 extern FILE* outFile;
 
 int scanner_token (int symbol) {
-  yylval = new astree (symbol, lexer::lloc, yytext);
+  yylval = new astree (symbol, scanner::lloc, yytext);
   yylval->print(outFile, yylval, 0);
   return symbol;
 }
