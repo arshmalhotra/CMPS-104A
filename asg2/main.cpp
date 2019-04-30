@@ -30,7 +30,7 @@ void cpp_popen (const char* filename) {
       fprintf (stderr, "-- popen (%s), fileno(yyin) = %d\n",
                cpp_command.c_str(), fileno (yyin));
     }
-    lexer::newfilename (cpp_command);
+    scanner::newfilename (cpp_command);
   }
 }
 
@@ -44,7 +44,7 @@ void scan_opts (int argc, char** argv) {
   opterr = 0;
   yy_flex_debug = 0;
   yydebug = 0;
-  lexer::interactive = isatty (fileno (stdin))
+  scanner::interactive = isatty (fileno (stdin))
                    and isatty (fileno (stdout));
   int option;
   while((option = getopt (argc, argv, "@:D:ly")) != EOF) {

@@ -23,7 +23,7 @@ int yylex_destroy();
 int yyparse();
 void yyerror (const char* message);
 
-struct lexer {
+struct scanner {
   static bool interactive;
   static location lloc;
   static size_t last_yyleng;

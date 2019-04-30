@@ -7,49 +7,49 @@
 #include "auxlib.h"
 #include "lyutils.h"
 
-bool lexer::interactive = true;
-location lexer::lloc = {0, 1, 0};
-size_t lexer::last_yyleng = 0;
-vector<string> lexer::filenames;
+bool scanner::interactive = true;
+location scanner::lloc = {0, 1, 0};
+size_t scanner::last_yyleng = 0;
+vector<string> scanner::filenames;
 
 astree* parser::root = nullptr;
 
-const string* lexer::filename (int filenr) {
-  return &lexer::filenames.at(filenr);
+const string* scanner::filename (int filenr) {
+  return &scanner::filenames.at(filenr);
 }
 
-void lexer::newfilename (const string& filename) {
-  lexer::lloc.filenr = lexer::filenames.size();
-  lexer::filenames.push_back (filename);
+void scanner::newfilename (const string& filename) {
+  scanner::lloc.filenr = scanner::filenames.size();
+  scanner::filenames.push_back (filename);
 }
 
-void lexer::advance() {
+void scanner::advance() {
   if (not interactive) {
-    if (lexer::lloc.offset == 0) {
+    if (scanner::lloc.offset == 0) {
        printf (";%2zd.%3zd: ",
-               lexer::lloc.filenr, lexer::lloc.linenr);
+               scanner::lloc.filenr, scanner::lloc.linenr);
     }
     printf ("%s", yytext);
   }
-  lexer::lloc.offset += last_yyleng;
+  scanner::lloc.offset += last_yyleng;
   last_yyleng = yyleng;
 }
 
-void lexer::newline() {
-  ++lexer::lloc.linenr;
-  lexer::lloc.offset = 0;
+void scanner::newline() {
+  ++scanner::lloc.linenr;
+  scanner::lloc.offset = 0;
 }
 
-void lexer::badchar (unsigned char bad) {
+void scanner::badchar (unsigned char bad) {
   char buffer[16];
   snprintf (buffer, sizeof buffer,
            isgraph (bad) ? "%c" : "\\%03o", bad);
-  errllocprintf (lexer::lloc, "invalid source character (%s)\n",
+  errllocprintf (scanner::lloc, "invalid source character (%s)\n",
                 buffer);
 }
 
 
-void lexer::include() {
+void scanner::include() {
   size_t linenr;
   static char filename[0x1000];
   assert (sizeof filename > strlen (yytext));
@@ -61,22 +61,22 @@ void lexer::include() {
        fprintf (stderr, "--included # %zd \"%s\"\n",
                 linenr, filename);
     }
-    lexer::lloc.linenr = linenr - 1;
-    lexer::newfilename (filename);
+    scanner::lloc.linenr = linenr - 1;
+    scanner::newfilename (filename);
   }
 }
 
-int lexer::token (int symbol) {
-  yylval = new astree (symbol, lexer::lloc, yytext);
+int scanner::token (int symbol) {
+  yylval = new astree (symbol, scanner::lloc, yytext);
   return symbol;
 }
 
-int lexer::badtoken (int symbol) {
-  errllocprintf (lexer::lloc, "invalid token (%s)\n", yytext);
-  return lexer::token (symbol);
+int scanner::badtoken (int symbol) {
+  errllocprintf (scanner::lloc, "invalid token (%s)\n", yytext);
+  return scanner::token (symbol);
 }
 
 void yyerror (const char* message) {
-  assert (not lexer::filenames.empty());
-  errllocprintf (lexer::lloc, "%s\n", message);
+  assert (not scanner::filenames.empty());
+  errllocprintf (scanner::lloc, "%s\n", message);
 }

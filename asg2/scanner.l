@@ -2,7 +2,7 @@
 
 #include "lyutils.h"
 
-#define YY_USER_ACTION  { lexer::advance(); }
+#define YY_USER_ACTION  { scanner::advance(); }
 
 %}
 
@@ -26,23 +26,35 @@ IDENT           ({LETTER}({LETTER}|{DIGIT})*)
 
 %%
 
-"#".*           { lexer::include(); }
+"#".*           { scanner::include(); }
 [ \t]+          { }
-\n              { lexer::newline(); }
+\n              { scanner::newline(); }
 
-{NUMBER}        { return lexer::token (NUMBER); }
-{IDENT}         { return lexer::token (IDENT); }
-"="             { return lexer::token ('='); }
-"+"             { return lexer::token ('+'); }
-"-"             { return lexer::token ('-'); }
-"*"             { return lexer::token ('*'); }
-"/"             { return lexer::token ('/'); }
-"^"             { return lexer::token ('^'); }
-"("             { return lexer::token ('('); }
-")"             { return lexer::token (')'); }
-";"             { return lexer::token (';'); }
+{NUMBER}        { return scanner::token (NUMBER); }
+{IDENT}         { return scanner::token (IDENT); }
+"="             { return scanner::token ('='); }
+"+"             { return scanner::token ('+'); }
+"-"             { return scanner::token ('-'); }
+"*"             { return scanner::token ('*'); }
+"/"             { return scanner::token ('/'); }
+"%"             { return scanner::token ('%'); }
+"=="            { return scanner::token ('=='); }
+"!="            { return scanner::token ('!='); }
+"<"             { return scanner::token ('<'); }
+"<="            { return scanner::token ('<='); }
+">"             { return scanner::token ('>'); }
+">="            { return scanner::token ('>='); }
+"->"            { return scanner::token ('->'); }
+","             { return scanner::token (','); }
+"("             { return scanner::token ('('); }
+")"             { return scanner::token (')'); }
+"["             { return scanner::token ('['); }
+"]"             { return scanner::token (']'); }
+"{"             { return scanner::token ('{'); }
+"}"             { return scanner::token ('}'); }
+";"             { return scanner::token (';'); }
 
-{NOTNUMBER}     { return lexer::badtoken (NUMBER); }
-.               { lexer::badchar (*yytext); }
+{NOTNUMBER}     { return scanner::badtoken (NUMBER); }
+.               { scanner::badchar (*yytext); }
 
 %%

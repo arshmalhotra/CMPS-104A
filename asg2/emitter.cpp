@@ -11,7 +11,7 @@ void emit (astree* root);
 void emit_insn (const char* opcode, const char* operand, astree* tree) {
   printf ("%-10s%-10s%-20s; %s %zd.%zd\n", "",
           opcode, operand,
-          lexer::filename (tree->lloc.filenr)->c_str(),
+          scanner::filename (tree->lloc.filenr)->c_str(),
           tree->lloc.linenr, tree->lloc.offset);
 }
 
