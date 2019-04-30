@@ -73,8 +73,6 @@ void cpplines (FILE* pipe, const char* filename) {
     int token;
     while((token = yylex()) != YYEOF) {
       if(token == -1) {
-        fprintf(stderr, "%s",
-          "Encountered bad set of characters\n");
         exit_status = EXIT_FAILURE;
         break;
       }
@@ -86,7 +84,6 @@ void cpplines (FILE* pipe, const char* filename) {
 
 void cpp_pclose () {
   int pclose_rc = pclose (yyin);
-  eprint_status (cpp_command.c_str(), pclose_rc);
   if (pclose_rc != 0) exec::exit_status = EXIT_FAILURE;
 }
 
