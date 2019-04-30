@@ -80,6 +80,6 @@ CHAR            ('([^\\'\n]|\\[\\'"0nt])')
 
 {NOTNUMBER}     { scanner::badtoken (NUMBER);
                   return scanner_token (NUMBER); }
-.               { return scanner_token (-1); }
+.               { scanner::badchar (*yytext); }
 
 %%
