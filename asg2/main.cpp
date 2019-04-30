@@ -104,7 +104,7 @@ void cpp_popen (const char* execname, const char* filename) {
     cpplines (yyin, basefilename);
     int parse_rc = yyparse();
     cpp_pclose();
-    
+
     string fname = std::string(basefilename);
     string strFilename = fname.substr(0, fname.size()-3) + ".str";
     const char* strFile = strFilename.c_str();
@@ -112,20 +112,20 @@ void cpp_popen (const char* execname, const char* filename) {
     string_set::dump (pipeout);
     fclose (pipeout);
 
-    yylex_destroy();
-    if (yydebug or yy_flex_debug) {
-      fprintf (stderr, "Dumping parser::root:\n");
-      if (parser::root != nullptr) parser::root->dump_tree(stderr);
-      fprintf (stderr, "Dumping string_set:\n");
-      string_set::dump (stderr);
-    }
-    if (parse_rc) {
-      errprintf ("parse failed (%d)\n", parse_rc);
-    } else {
-      astree::print (stdout, parser::root);
-      emit_sm_code (parser::root);
-      delete parser::root;
-    }
+    // yylex_destroy();
+    // if (yydebug or yy_flex_debug) {
+    //   fprintf (stderr, "Dumping parser::root:\n");
+    //   if (parser::root != nullptr) parser::root->dump_tree(stderr);
+    //   fprintf (stderr, "Dumping string_set:\n");
+    //   string_set::dump (stderr);
+    // }
+    // if (parse_rc) {
+    //   errprintf ("parse failed (%d)\n", parse_rc);
+    // } else {
+    //   astree::print (stdout, parser::root);
+    //   emit_sm_code (parser::root);
+    //   delete parser::root;
+    // }
   }
 }
 
