@@ -11,6 +11,7 @@ bool scanner::interactive = true;
 location scanner::lloc = {0, 1, 0};
 size_t scanner::last_yyleng = 0;
 vector<string> scanner::filenames;
+FILE* outFile;
 
 astree* parser::root = nullptr;
 
