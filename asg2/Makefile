@@ -66,7 +66,7 @@ lis : ${LISTSRC} tests
 	      ${patsubst %, ${test}.%, in out err log}}
 
 clean :
-	- rm ${OBJECTS} ${ALLGENS} ${DEPSFILE} core
+	- rm ${OBJECTS} ${ALLGENS} ${REPORTS} ${DEPSFILE} core
 	- rm ${foreach test, ${TESTINS:.in=}, \
 	      ${patsubst %, ${test}.%, out err log}}
 
