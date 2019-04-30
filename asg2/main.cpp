@@ -55,17 +55,17 @@ void cpplines (FILE* pipe, const char* filename) {
     char inputname[LINESIZE];
     int sscanf_rc = sscanf (buffer, "# %d \"%[^\"]\"",
                             &linenr, inputname);
-    if (sscanf_rc == 2) {
-      continue;
-    }
-    char* savepos = nullptr;
-    char* bufptr = buffer;
-    for (int tokenct = 1;; tokenct++) {
-      char* token = strtok_r (bufptr, " \t\n", &savepos);
-      bufptr = nullptr;
-      if (token == nullptr) break;
-      string_set::intern (token);
-    }
+    // if (sscanf_rc == 2) {
+    //   continue;
+    // }
+    // char* savepos = nullptr;
+    // char* bufptr = buffer;
+    // for (int tokenct = 1;; tokenct++) {
+    //   char* token = strtok_r (bufptr, " \t\n", &savepos);
+    //   bufptr = nullptr;
+    //   if (token == nullptr) break;
+    //   string_set::intern (token);
+    // }
     string fname = std::string(filename);
     string tokFilename = fname.substr(0, fname.size()-3) + ".tok";
     const char* tokFile = tokFilename.c_str();
@@ -73,6 +73,8 @@ void cpplines (FILE* pipe, const char* filename) {
     int token;
     while((token = yylex()) != YYEOF) {
       if(token == -1) {
+        fprintf(stderr, "%s",
+          "Encountered bad set of characters\n");
         exit_status = EXIT_FAILURE;
         break;
       }
@@ -100,6 +102,9 @@ void cpp_popen (const char* execname, const char* filename) {
                cpp_command.c_str(), fileno (yyin));
     }
     cpplines (yyin, basefilename);
+    int parse_rc = yyparse();
+    cpp_pclose();
+    
     string fname = std::string(basefilename);
     string strFilename = fname.substr(0, fname.size()-3) + ".str";
     const char* strFile = strFilename.c_str();
@@ -107,8 +112,6 @@ void cpp_popen (const char* execname, const char* filename) {
     string_set::dump (pipeout);
     fclose (pipeout);
 
-    int parse_rc = yyparse();
-    cpp_pclose();
     yylex_destroy();
     if (yydebug or yy_flex_debug) {
       fprintf (stderr, "Dumping parser::root:\n");
