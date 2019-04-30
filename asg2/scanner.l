@@ -23,11 +23,11 @@ EXPONENT        ([Ee][+-]?{DIGIT}+)
 NUMBER          ({MANTISSA}{EXPONENT}?)
 NOTNUMBER       ({MANTISSA}[Ee][+-]?)
 IDENT           ({LETTER}({LETTER}|{DIGIT})*)
-EQUALCMP        "=="
-NOTEQUAL        "!="
-LESSTHANEQ      "<="
-GRTERTHANEQ     ">="
-POINTER         "->"
+%token <operator> EQUALCMP        "=="
+%token <operator> NOTEQUAL        "!="
+%token <operator> LESSTHANEQ      "<="
+%token <operator> GRTERTHANEQ     ">="
+%token <operator> POINTER         "->"
 
 %%
 
