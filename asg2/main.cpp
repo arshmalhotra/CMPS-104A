@@ -23,6 +23,7 @@ constexpr size_t LINESIZE = 1024;
 extern FILE* outFile;
 int exit_status;
 string cpp_command;
+char* basefilename;
 
 void print_usage() {
   errprintf ("Usage: %s [-ly] [-@(flags)...] [-D(string)] filename\n",
@@ -101,8 +102,8 @@ void cpp_popen (const char* execname, const char* filename) {
       fprintf (stderr, "-- popen (%s), fileno(yyin) = %d\n",
                cpp_command.c_str(), fileno (yyin));
     }
-    cpplines (yyin, basename(filename));
-    string fname = std::string(basename(filename));
+    cpplines (yyin, basefilename);
+    string fname = std::string(basefilename);
     string strFilename = fname.substr(0, fname.size()-3) + ".str";
     const char* strFile = strFilename.c_str();
     FILE* pipeout = fopen(strFile, "w+");
@@ -157,6 +158,7 @@ void scan_opts (int argc, char** argv) {
   }
   const char* execname = basename (argv[0]);
   const char* filename = optind == argc ? "-" : argv[optind];
+  basefilename = basename(argv[optind]);
   cpp_popen (execname, filename);
 }
 
