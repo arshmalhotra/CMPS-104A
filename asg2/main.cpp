@@ -95,7 +95,7 @@ void cpp_popen (const char* filename) {
   if (yyin == nullptr) {
     exit_status = EXIT_FAILURE;
     fprintf (stderr, "%s: %s: %s\n",
-             exec::execname, cpp_command.c_str(), strerror (errno));
+             exec::execname.c_str(), cpp_command.c_str(), strerror (errno));
   }else {
     if (yy_flex_debug) {
       fprintf (stderr, "-- popen (%s), fileno(yyin) = %d\n",
