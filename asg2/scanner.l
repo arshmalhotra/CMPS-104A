@@ -23,6 +23,11 @@ EXPONENT        ([Ee][+-]?{DIGIT}+)
 NUMBER          ({MANTISSA}{EXPONENT}?)
 NOTNUMBER       ({MANTISSA}[Ee][+-]?)
 IDENT           ({LETTER}({LETTER}|{DIGIT})*)
+EQUALCMP        "=="
+NOTEQUAL        "!="
+LESSTHANEQ      "<="
+GRTERTHANEQ     ">="
+POINTER         "->"
 
 %%
 
@@ -38,13 +43,13 @@ IDENT           ({LETTER}({LETTER}|{DIGIT})*)
 "*"             { return scanner::token ('*'); }
 "/"             { return scanner::token ('/'); }
 "%"             { return scanner::token ('%'); }
-"=="            { return scanner::token ('=='); }
-"!="            { return scanner::token ('!='); }
+{EQUALCMP}      { return scanner::token (EQUALCMP); }
+{NOTEQUAL}      { return scanner::token (NOTEQUAL); }
 "<"             { return scanner::token ('<'); }
-"<="            { return scanner::token ('<='); }
+{LESSTHANEQ}    { return scanner::token (LESSTHANEQ); }
 ">"             { return scanner::token ('>'); }
-">="            { return scanner::token ('>='); }
-"->"            { return scanner::token ('->'); }
+{GRTERTHANEQ}   { return scanner::token (GRTERTHANEQ); }
+{POINTER}       { return scanner::token (POINTER); }
 ","             { return scanner::token (','); }
 "("             { return scanner::token ('('); }
 ")"             { return scanner::token (')'); }
