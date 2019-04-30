@@ -7,9 +7,9 @@
 
 extern FILE* outFile;
 
-int yylval_token (int symbol) {
+int scanner_token (int symbol) {
   yylval = new astree (symbol, lexer::lloc, yytext);
-  yylval->pretty_print(outFile, yylval);
+  yylval->print(outFile, yylval, 0);
   return symbol;
 }
 
@@ -42,44 +42,44 @@ CHAR            ('([^\\'\n]|\\[\\'"0nt])')
 [ \t]+          { }
 \n              { scanner::newline(); }
 
-(if)            { return yylval_token (TOK_IF); }
-(else)          { return yylval_token (TOK_ELSE); }
-(while)         { return yylval_token (TOK_WHILE); }
-(return)        { return yylval_token (TOK_RET); }
-(int)           { return yylval_token (TOK_INT); }
-(string)        { return yylval_token (TOK_STRING); }
-(struct)        { return yylval_token (TOK_STRUCT); }
-(void)          { return yylval_token (TOK_VOID); }
-(new)           { return yylval_token (TOK_NEW); }
-(null)          { return yylval_token (TOK_NULL); }
+(if)            { return scanner_token (TOK_IF); }
+(else)          { return scanner_token (TOK_ELSE); }
+(while)         { return scanner_token (TOK_WHILE); }
+(return)        { return scanner_token (TOK_RET); }
+(int)           { return scanner_token (TOK_INT); }
+(string)        { return scanner_token (TOK_STRING); }
+(struct)        { return scanner_token (TOK_STRUCT); }
+(void)          { return scanner_token (TOK_VOID); }
+(new)           { return scanner_token (TOK_NEW); }
+(null)          { return scanner_token (TOK_NULL); }
 
-(<=)            { return yylval_token (TOK_LEQ); }
-(>=)            { return yylval_token (TOK_GEQ); }
-(==)            { return yylval_token (TOK_EQ); }
-(!=)            { return yylval_token (TOK_NEQ); }
+(<=)            { return scanner_token (TOK_LEQ); }
+(>=)            { return scanner_token (TOK_GEQ); }
+(==)            { return scanner_token (TOK_EQ); }
+(!=)            { return scanner_token (TOK_NEQ); }
 
-(\[\])          { return yylval_token (TOK_ARRAY); }
-{NUMBER}        { return yylval_token (NUMBER); }
-{IDENT}         { return yylval_token (IDENT); }
-"="             { return yylval_token ('='); }
-"+"             { return yylval_token ('+'); }
-"-"             { return yylval_token ('-'); }
-"*"             { return yylval_token ('*'); }
-"/"             { return yylval_token ('/'); }
-"%"             { return yylval_token ('%'); }
-"<"             { return yylval_token ('<'); }
-">"             { return yylval_token ('>'); }
-","             { return yylval_token (','); }
-"("             { return yylval_token ('('); }
-")"             { return yylval_token (')'); }
-"["             { return yylval_token ('['); }
-"]"             { return yylval_token (']'); }
-"{"             { return yylval_token ('{'); }
-"}"             { return yylval_token ('}'); }
-";"             { return yylval_token (';'); }
+(\[\])          { return scanner_token (TOK_ARRAY); }
+{NUMBER}        { return scanner_token (NUMBER); }
+{IDENT}         { return scanner_token (IDENT); }
+"="             { return scanner_token ('='); }
+"+"             { return scanner_token ('+'); }
+"-"             { return scanner_token ('-'); }
+"*"             { return scanner_token ('*'); }
+"/"             { return scanner_token ('/'); }
+"%"             { return scanner_token ('%'); }
+"<"             { return scanner_token ('<'); }
+">"             { return scanner_token ('>'); }
+","             { return scanner_token (','); }
+"("             { return scanner_token ('('); }
+")"             { return scanner_token (')'); }
+"["             { return scanner_token ('['); }
+"]"             { return scanner_token (']'); }
+"{"             { return scanner_token ('{'); }
+"}"             { return scanner_token ('}'); }
+";"             { return scanner_token (';'); }
 
 {NOTNUMBER}     { scanner::badtoken (NUMBER);
-                  return yylval_token (NUMBER); }
-.               { return yylval_token (-1); }
+                  return scanner_token (NUMBER); }
+.               { return scanner_token (-1); }
 
 %%
