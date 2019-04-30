@@ -1,3 +1,10 @@
+// CMPS104A
+// ASSIGNMENT: ASG2
+// NAME 1: Shlok Gharia
+// EMAIL 1: sgharia@ucsc.edu
+// NAME 2: Arsh Malhotra
+// EMAIL 2: amalhot3@ucsc.edu
+
 #ifndef __ASTREE_H__
 #define __ASTREE_H__
 

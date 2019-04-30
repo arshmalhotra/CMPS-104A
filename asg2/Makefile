@@ -1,3 +1,10 @@
+# CMPS104A
+# ASSIGNMENT: ASG2
+# NAME 1: Shlok Gharia
+# EMAIL 1: sgharia@ucsc.edu
+# NAME 2: Arsh Malhotra
+# EMAIL 2: amalhot3@ucsc.edu
+
 DEPSFILE  = Makefile.deps
 CPP       = g++ -g -O0 -Wall -Wextra -std=gnu++14
 MKDEPS    = g++ -MM -std=gnu++14
