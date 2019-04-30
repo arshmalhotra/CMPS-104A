@@ -1,0 +1,479 @@
+Terminals unused in grammar
+
+   ROOT
+   TOK_IF
+   TOK_ELSE
+   TOK_WHILE
+   TOK_RET
+   TOK_INT
+   TOK_STRING
+   TOK_STRUCT
+   TOK_VOID
+   TOK_NEW
+   TOK_NULL
+   TOK_ARRAY
+   TOK_EQ
+   TOK_NEQ
+   TOK_LEQ
+   TOK_GEQ
+   '['
+   ']'
+   '{'
+   '}'
+   ','
+   '.'
+   '%'
+   '!'
+
+
+Grammar
+
+    0 $accept: program $end
+
+    1 program: stmtseq
+
+    2 stmtseq: stmtseq expr ';'
+    3        | stmtseq error ';'
+    4        | stmtseq ';'
+    5        | %empty
+
+    6 expr: expr '=' expr
+    7     | expr '+' expr
+    8     | expr '-' expr
+    9     | expr '*' expr
+   10     | expr '/' expr
+   11     | expr '^' expr
+   12     | '+' expr
+   13     | '-' expr
+   14     | '(' expr ')'
+   15     | IDENT
+   16     | NUMBER
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+'!' (33)
+'%' (37)
+'(' (40) 14
+')' (41) 14
+'*' (42) 9
+'+' (43) 7 12
+',' (44)
+'-' (45) 8 13
+'.' (46)
+'/' (47) 10
+';' (59) 2 3 4
+'=' (61) 6
+'[' (91)
+']' (93)
+'^' (94) 11
+'{' (123)
+'}' (125)
+error (256) 3
+ROOT (258)
+IDENT (259) 15
+NUMBER (260) 16
+TOK_IF (261)
+TOK_ELSE (262)
+TOK_WHILE (263)
+TOK_RET (264)
+TOK_INT (265)
+TOK_STRING (266)
+TOK_STRUCT (267)
+TOK_VOID (268)
+TOK_NEW (269)
+TOK_NULL (270)
+TOK_ARRAY (271)
+TOK_EQ (272)
+TOK_NEQ (273)
+TOK_LEQ (274)
+TOK_GEQ (275)
+POS (276)
+NEG (277)
+
+
+Nonterminals, with rules where they appear
+
+$accept (40)
+    on left: 0
+program (41)
+    on left: 1, on right: 0
+stmtseq (42)
+    on left: 2 3 4 5, on right: 1 2 3 4
+expr (43)
+    on left: 6 7 8 9 10 11 12 13 14 15 16, on right: 2 6 7 8 9 10 11
+    12 13 14
+
+
+State 0
+
+    0 $accept: . program $end
+
+    $default  reduce using rule 5 (stmtseq)
+
+    program  go to state 1
+    stmtseq  go to state 2
+
+
+State 1
+
+    0 $accept: program . $end
+
+    $end  shift, and go to state 3
+
+
+State 2
+
+    1 program: stmtseq .
+    2 stmtseq: stmtseq . expr ';'
+    3        | stmtseq . error ';'
+    4        | stmtseq . ';'
+
+    error   shift, and go to state 4
+    IDENT   shift, and go to state 5
+    NUMBER  shift, and go to state 6
+    '('     shift, and go to state 7
+    ';'     shift, and go to state 8
+    '+'     shift, and go to state 9
+    '-'     shift, and go to state 10
+
+    $end  reduce using rule 1 (program)
+
+    expr  go to state 11
+
+
+State 3
+
+    0 $accept: program $end .
+
+    $default  accept
+
+
+State 4
+
+    3 stmtseq: stmtseq error . ';'
+
+    ';'  shift, and go to state 12
+
+
+State 5
+
+   15 expr: IDENT .
+
+    $default  reduce using rule 15 (expr)
+
+
+State 6
+
+   16 expr: NUMBER .
+
+    $default  reduce using rule 16 (expr)
+
+
+State 7
+
+   14 expr: '(' . expr ')'
+
+    IDENT   shift, and go to state 5
+    NUMBER  shift, and go to state 6
+    '('     shift, and go to state 7
+    '+'     shift, and go to state 9
+    '-'     shift, and go to state 10
+
+    expr  go to state 13
+
+
+State 8
+
+    4 stmtseq: stmtseq ';' .
+
+    $default  reduce using rule 4 (stmtseq)
+
+
+State 9
+
+   12 expr: '+' . expr
+
+    IDENT   shift, and go to state 5
+    NUMBER  shift, and go to state 6
+    '('     shift, and go to state 7
+    '+'     shift, and go to state 9
+    '-'     shift, and go to state 10
+
+    expr  go to state 14
+
+
+State 10
+
+   13 expr: '-' . expr
+
+    IDENT   shift, and go to state 5
+    NUMBER  shift, and go to state 6
+    '('     shift, and go to state 7
+    '+'     shift, and go to state 9
+    '-'     shift, and go to state 10
+
+    expr  go to state 15
+
+
+State 11
+
+    2 stmtseq: stmtseq expr . ';'
+    6 expr: expr . '=' expr
+    7     | expr . '+' expr
+    8     | expr . '-' expr
+    9     | expr . '*' expr
+   10     | expr . '/' expr
+   11     | expr . '^' expr
+
+    ';'  shift, and go to state 16
+    '='  shift, and go to state 17
+    '+'  shift, and go to state 18
+    '-'  shift, and go to state 19
+    '*'  shift, and go to state 20
+    '/'  shift, and go to state 21
+    '^'  shift, and go to state 22
+
+
+State 12
+
+    3 stmtseq: stmtseq error ';' .
+
+    $default  reduce using rule 3 (stmtseq)
+
+
+State 13
+
+    6 expr: expr . '=' expr
+    7     | expr . '+' expr
+    8     | expr . '-' expr
+    9     | expr . '*' expr
+   10     | expr . '/' expr
+   11     | expr . '^' expr
+   14     | '(' expr . ')'
+
+    ')'  shift, and go to state 23
+    '='  shift, and go to state 17
+    '+'  shift, and go to state 18
+    '-'  shift, and go to state 19
+    '*'  shift, and go to state 20
+    '/'  shift, and go to state 21
+    '^'  shift, and go to state 22
+
+
+State 14
+
+    6 expr: expr . '=' expr
+    7     | expr . '+' expr
+    8     | expr . '-' expr
+    9     | expr . '*' expr
+   10     | expr . '/' expr
+   11     | expr . '^' expr
+   12     | '+' expr .
+
+    $default  reduce using rule 12 (expr)
+
+
+State 15
+
+    6 expr: expr . '=' expr
+    7     | expr . '+' expr
+    8     | expr . '-' expr
+    9     | expr . '*' expr
+   10     | expr . '/' expr
+   11     | expr . '^' expr
+   13     | '-' expr .
+
+    $default  reduce using rule 13 (expr)
+
+
+State 16
+
+    2 stmtseq: stmtseq expr ';' .
+
+    $default  reduce using rule 2 (stmtseq)
+
+
+State 17
+
+    6 expr: expr '=' . expr
+
+    IDENT   shift, and go to state 5
+    NUMBER  shift, and go to state 6
+    '('     shift, and go to state 7
+    '+'     shift, and go to state 9
+    '-'     shift, and go to state 10
+
+    expr  go to state 24
+
+
+State 18
+
+    7 expr: expr '+' . expr
+
+    IDENT   shift, and go to state 5
+    NUMBER  shift, and go to state 6
+    '('     shift, and go to state 7
+    '+'     shift, and go to state 9
+    '-'     shift, and go to state 10
+
+    expr  go to state 25
+
+
+State 19
+
+    8 expr: expr '-' . expr
+
+    IDENT   shift, and go to state 5
+    NUMBER  shift, and go to state 6
+    '('     shift, and go to state 7
+    '+'     shift, and go to state 9
+    '-'     shift, and go to state 10
+
+    expr  go to state 26
+
+
+State 20
+
+    9 expr: expr '*' . expr
+
+    IDENT   shift, and go to state 5
+    NUMBER  shift, and go to state 6
+    '('     shift, and go to state 7
+    '+'     shift, and go to state 9
+    '-'     shift, and go to state 10
+
+    expr  go to state 27
+
+
+State 21
+
+   10 expr: expr '/' . expr
+
+    IDENT   shift, and go to state 5
+    NUMBER  shift, and go to state 6
+    '('     shift, and go to state 7
+    '+'     shift, and go to state 9
+    '-'     shift, and go to state 10
+
+    expr  go to state 28
+
+
+State 22
+
+   11 expr: expr '^' . expr
+
+    IDENT   shift, and go to state 5
+    NUMBER  shift, and go to state 6
+    '('     shift, and go to state 7
+    '+'     shift, and go to state 9
+    '-'     shift, and go to state 10
+
+    expr  go to state 29
+
+
+State 23
+
+   14 expr: '(' expr ')' .
+
+    $default  reduce using rule 14 (expr)
+
+
+State 24
+
+    6 expr: expr . '=' expr
+    6     | expr '=' expr .
+    7     | expr . '+' expr
+    8     | expr . '-' expr
+    9     | expr . '*' expr
+   10     | expr . '/' expr
+   11     | expr . '^' expr
+
+    '='  shift, and go to state 17
+    '+'  shift, and go to state 18
+    '-'  shift, and go to state 19
+    '*'  shift, and go to state 20
+    '/'  shift, and go to state 21
+    '^'  shift, and go to state 22
+
+    $default  reduce using rule 6 (expr)
+
+
+State 25
+
+    6 expr: expr . '=' expr
+    7     | expr . '+' expr
+    7     | expr '+' expr .
+    8     | expr . '-' expr
+    9     | expr . '*' expr
+   10     | expr . '/' expr
+   11     | expr . '^' expr
+
+    '*'  shift, and go to state 20
+    '/'  shift, and go to state 21
+    '^'  shift, and go to state 22
+
+    $default  reduce using rule 7 (expr)
+
+
+State 26
+
+    6 expr: expr . '=' expr
+    7     | expr . '+' expr
+    8     | expr . '-' expr
+    8     | expr '-' expr .
+    9     | expr . '*' expr
+   10     | expr . '/' expr
+   11     | expr . '^' expr
+
+    '*'  shift, and go to state 20
+    '/'  shift, and go to state 21
+    '^'  shift, and go to state 22
+
+    $default  reduce using rule 8 (expr)
+
+
+State 27
+
+    6 expr: expr . '=' expr
+    7     | expr . '+' expr
+    8     | expr . '-' expr
+    9     | expr . '*' expr
+    9     | expr '*' expr .
+   10     | expr . '/' expr
+   11     | expr . '^' expr
+
+    '^'  shift, and go to state 22
+
+    $default  reduce using rule 9 (expr)
+
+
+State 28
+
+    6 expr: expr . '=' expr
+    7     | expr . '+' expr
+    8     | expr . '-' expr
+    9     | expr . '*' expr
+   10     | expr . '/' expr
+   10     | expr '/' expr .
+   11     | expr . '^' expr
+
+    '^'  shift, and go to state 22
+
+    $default  reduce using rule 10 (expr)
+
+
+State 29
+
+    6 expr: expr . '=' expr
+    7     | expr . '+' expr
+    8     | expr . '-' expr
+    9     | expr . '*' expr
+   10     | expr . '/' expr
+   11     | expr . '^' expr
+   11     | expr '^' expr .
+
+    '^'  shift, and go to state 22
+
+    $default  reduce using rule 11 (expr)

@@ -14,7 +14,7 @@
 #include "auxlib.h"
 #include "string_set.h"
 #include "lyutils.h"
-#include "emmiter.h"
+#include "emitter.h"
 
 using namespace std;
 
