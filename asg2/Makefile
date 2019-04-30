@@ -19,7 +19,7 @@ LEXCPP    = yylex.cpp
 PARSECPP  = yyparse.cpp
 CGENS     = ${LEXCPP} ${PARSECPP}
 ALLGENS   = ${PARSEHDR} ${CGENS}
-EXECBIN   = zexprsm
+EXECBIN   = oc
 ALLCSRC   = ${CPPSRC} ${CGENS}
 OBJECTS   = ${ALLCSRC:.cpp=.o}
 LEXOUT    = yylex.output
@@ -66,7 +66,7 @@ lis : ${LISTSRC} tests
 	      ${patsubst %, ${test}.%, in out err log}}
 
 clean :
-	- rm ${OBJECTS} ${ALLGENS} ${REPORTS} ${DEPSFILE} core
+	- rm ${OBJECTS} ${ALLGENS} ${DEPSFILE} core
 	- rm ${foreach test, ${TESTINS:.in=}, \
 	      ${patsubst %, ${test}.%, out err log}}
 
