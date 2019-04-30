@@ -23,6 +23,15 @@
 }
 
 %token  ROOT IDENT NUMBER
+%token  ROOT IDENT NUMBER
+%token  TOK_IF TOK_ELSE TOK_WHILE TOK_RET
+%token  TOK_INT TOK_STRING TOK_STRUCT TOK_VOID
+%token  TOK_NEW TOK_NULL TOK_ARRAY
+
+%token  TOK_EQ TOK_NEQ TOK_LEQ TOK_GEQ
+
+%token  '('  ')'  '['  ']'  '{'  '}'  ';'  ','  '.'
+%token  '='  '+'  '-'  '*'  '/'  '%'  '!'
 
 %right  '='
 %left   '+' '-'

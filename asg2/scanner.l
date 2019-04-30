@@ -23,11 +23,9 @@ EXPONENT        ([Ee][+-]?{DIGIT}+)
 NUMBER          ({MANTISSA}{EXPONENT}?)
 NOTNUMBER       ({MANTISSA}[Ee][+-]?)
 IDENT           ({LETTER}({LETTER}|{DIGIT})*)
-%token <operator> EQUALCMP        "=="
-%token <operator> NOTEQUAL        "!="
-%token <operator> LESSTHANEQ      "<="
-%token <operator> GRTERTHANEQ     ">="
-%token <operator> POINTER         "->"
+
+STRING          (\"([^\\"\n]|\\[\\'"0nt])*\")
+CHAR            ('([^\\'\n]|\\[\\'"0nt])')
 
 %%
 
@@ -35,6 +33,23 @@ IDENT           ({LETTER}({LETTER}|{DIGIT})*)
 [ \t]+          { }
 \n              { scanner::newline(); }
 
+(if)            { return scanner::token (TOK_IF); }
+(else)          { return scanner::token (TOK_ELSE); }
+(while)         { return scanner::token (TOK_WHILE); }
+(return)        { return scanner::token (TOK_RET); }
+(int)           { return scanner::token (TOK_INT); }
+(string)        { return scanner::token (TOK_STRING); }
+(struct)        { return scanner::token (TOK_STRUCT); }
+(void)          { return scanner::token (TOK_VOID); }
+(new)           { return scanner::token (TOK_NEW); }
+(null)          { return scanner::token (TOK_NULL); }
+
+(<=)            { return scanner::token (TOK_LEQ); }
+(>=)            { return scanner::token (TOK_GEQ); }
+(==)            { return scanner::token (TOK_EQ); }
+(!=)            { return scanner::token (TOK_NEQ); }
+
+(\[\])          { return scanner::token (TOK_ARRAY); }
 {NUMBER}        { return scanner::token (NUMBER); }
 {IDENT}         { return scanner::token (IDENT); }
 "="             { return scanner::token ('='); }
@@ -43,13 +58,8 @@ IDENT           ({LETTER}({LETTER}|{DIGIT})*)
 "*"             { return scanner::token ('*'); }
 "/"             { return scanner::token ('/'); }
 "%"             { return scanner::token ('%'); }
-{EQUALCMP}      { return scanner::token (EQUALCMP); }
-{NOTEQUAL}      { return scanner::token (NOTEQUAL); }
 "<"             { return scanner::token ('<'); }
-{LESSTHANEQ}    { return scanner::token (LESSTHANEQ); }
 ">"             { return scanner::token ('>'); }
-{GRTERTHANEQ}   { return scanner::token (GRTERTHANEQ); }
-{POINTER}       { return scanner::token (POINTER); }
 ","             { return scanner::token (','); }
 "("             { return scanner::token ('('); }
 ")"             { return scanner::token (')'); }
