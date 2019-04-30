@@ -14,12 +14,15 @@
 #include "auxlib.h"
 #include "string_set.h"
 #include "lyutils.h"
+#include "emmiter.h"
 
 using namespace std;
 
 string CPP = "/usr/bin/cpp -nostdinc";
 constexpr size_t LINESIZE = 1024;
+extern FILE* outFile;
 int exit_status;
+string cpp_command;
 
 void print_usage() {
   errprintf ("Usage: %s [-ly] [-@(flags)...] [-D(string)] filename\n",
@@ -32,49 +35,6 @@ void chomp (char* string, char delim) {
   if (len == 0) return;
   char* nlpos = string + len - 1;
   if (*nlpos == delim) *nlpos = '\0';
-}
-
-void cpp_popen (const char* filename) {
-  cpp_command = cpp_name + " " + filename;
-  yyin = popen (cpp_command.c_str(), "r");
-  if (yyin == nullptr) {
-    syserrprintf (cpp_command.c_str());
-    exit (exec::exit_status);
-  }else {
-    if (yy_flex_debug) {
-      fprintf (stderr, "-- popen (%s), fileno(yyin) = %d\n",
-               cpp_command.c_str(), fileno (yyin));
-    }
-    cpplines (yyin, filename);
-    string strFilename = filename.substr(0, fname.size()-3) + ".str";
-    const char* strFile = strFilename.c_str();
-    FILE* pipeout = fopen(strFilename, "w+");
-    string_set::dump (pipeout);
-    fclose (pipeout);
-
-    int parse_rc = yyparse();
-    cpp_pclose();
-    yylex_destroy();
-    if (yydebug or yy_flex_debug) {
-      fprintf (stderr, "Dumping parser::root:\n");
-      if (parser::root != nullptr) parser::root->dump_tree(stderr);
-      fprintf (stderr, "Dumping string_set:\n");
-      string_set::dump (stderr);
-    }
-    if (parse_rc) {
-      errprintf ("parse failed (%d)\n", parse_rc);
-    } else {
-      astree::print (stdout, parser::root);
-      emit_sm_code (parser::root);
-      delete parser::root;
-    }
-  }
-}
-
-void cpp_pclose () {
-  int pclose_rc = pclose (yyin);
-  eprint_status (cpp_command.c_str(), pclose_rc);
-  if (pclose_rc != 0) exec::exit_status = EXIT_FAILURE;
 }
 
 void astree::print_tok (FILE* outfile, astree* tree) {
@@ -106,7 +66,7 @@ void cpplines (FILE* pipe, const char* filename) {
       string_set::intern (token);
     }
     string fname = std::string(filename);
-    string tokFilename = filename.substr(0, fname.size()-3) + ".tok";
+    string tokFilename = fname.substr(0, fname.size()-3) + ".tok";
     const char* tokFile = tokFilename.c_str();
     outFile = fopen(tokFile, "w");
     int token;
@@ -120,6 +80,50 @@ void cpplines (FILE* pipe, const char* filename) {
     }
     fclose(outFile);
     linenr++;
+  }
+}
+
+void cpp_pclose () {
+  int pclose_rc = pclose (yyin);
+  eprint_status (cpp_command.c_str(), pclose_rc);
+  if (pclose_rc != 0) exec::exit_status = EXIT_FAILURE;
+}
+
+void cpp_popen (const char* filename) {
+  cpp_command = CPP + " " + filename;
+  yyin = popen (cpp_command.c_str(), "r");
+  if (yyin == nullptr) {
+    syserrprintf (cpp_command.c_str());
+    exit (exec::exit_status);
+  }else {
+    if (yy_flex_debug) {
+      fprintf (stderr, "-- popen (%s), fileno(yyin) = %d\n",
+               cpp_command.c_str(), fileno (yyin));
+    }
+    cpplines (yyin, filename);
+    string fname = std::string(filename);
+    string strFilename = fname.substr(0, fname.size()-3) + ".str";
+    const char* strFile = strFilename.c_str();
+    FILE* pipeout = fopen(strFile, "w+");
+    string_set::dump (pipeout);
+    fclose (pipeout);
+
+    int parse_rc = yyparse();
+    cpp_pclose();
+    yylex_destroy();
+    if (yydebug or yy_flex_debug) {
+      fprintf (stderr, "Dumping parser::root:\n");
+      if (parser::root != nullptr) parser::root->dump_tree(stderr);
+      fprintf (stderr, "Dumping string_set:\n");
+      string_set::dump (stderr);
+    }
+    if (parse_rc) {
+      errprintf ("parse failed (%d)\n", parse_rc);
+    } else {
+      astree::print (stdout, parser::root);
+      emit_sm_code (parser::root);
+      delete parser::root;
+    }
   }
 }
 
@@ -137,7 +141,7 @@ void scan_opts (int argc, char** argv) {
         yydebug = 1;
         break;
       case 'D':
-        cpp_name = cpp_name + " -D " + optarg;
+        CPP = CPP + " -D " + optarg;
         break;
       case '@':
         set_debugflags(optarg);
@@ -158,7 +162,7 @@ int main (int argc, char** argv) {
   const char* execname = basename (argv[0]);
   exit_status = EXIT_SUCCESS;
 
-  scan_opts(arc, arv);
+  scan_opts(argc, argv);
 
   return exit_status;
 }
