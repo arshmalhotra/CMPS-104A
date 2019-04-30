@@ -156,7 +156,7 @@ void scan_opts (int argc, char** argv) {
     print_usage();
   }
   const char* execname = basename (argv[0]);
-  const char* filename = optind == argc ? "-" : argv[optind];
+  const char* filename = optind == argc ? "-" : basename (argv[optind]);
   cpp_popen (execname, filename);
 }
 
