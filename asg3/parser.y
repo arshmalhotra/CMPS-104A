@@ -31,7 +31,7 @@ extern int exit_status;
 %token  ROOT IDENT NUMBER UNOP BINOP
 %token  TOK_IF TOK_ELSE TOK_WHILE TOK_RET TOK_IFELSE
 %token  TOK_INT TOK_STRING TOK_STRUCT TOK_VOID TOK_PTR
-%token  TOK_PTR TOK_VAR TOK_FUNC TOK_PARAM TOK_INDEX
+%token  TOK_VAR TOK_FUNC TOK_PARAM TOK_INDEX
 %token  TOK_NULL TOK_ARRAY TOK_TYPEID TOK_ATTR
 %token  TOK_ASTRING TOK_ANARRAY TOK_CALL TOK_EXC
 %token  TOK_EQ TOK_NEQ TOK_LEQ TOK_GEQ
@@ -123,14 +123,14 @@ decl      : type IDENT                { $2->swap(TOK_TYPEID);
 block     : '{' '}'                   { destroy($2);
                                         $1->swap(TOK_BLOCK);
                                         $$ = $1; }
-          | '{' statments '}'         { destroy($3);
+          | '{' statements '}'         { destroy($3);
                                         $1->swap(TOK_BLOCK);
                                         $$ = $1->adopt($2); }
           | ';'                       { $1->swap(TOK_BLOCK);
                                         $$ = $1; }
           ;
 
-statements : statement statements     { $$ = $1->adopt($2); }
+statements: statement statements     { $$ = $1->adopt($2); }
           | statement                 { $$ = $1; }
           ;
 
