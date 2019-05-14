@@ -1,5 +1,5 @@
 # CMPS104A
-# ASSIGNMENT: ASG2
+# ASSIGNMENT: ASG3
 # NAME 1: Shlok Gharia
 # EMAIL 1: sgharia@ucsc.edu
 # NAME 2: Arsh Malhotra
@@ -12,7 +12,7 @@ GRIND     = valgrind --leak-check=full --show-reachable=yes
 FLEX      = flex --outfile=${LEXCPP}
 BISON     = bison --defines=${PARSEHDR} --output=${PARSECPP}
 
-MODULES   = astree lyutils string_set auxlib emitter
+MODULES   = astree lyutils string_set auxlib
 HDRSRC    = ${MODULES:=.h}
 CPPSRC    = ${MODULES:=.cpp} main.cpp
 FLEXSRC   = scanner.l

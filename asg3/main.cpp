@@ -1,5 +1,5 @@
 // CMPS104A
-// ASSIGNMENT: ASG2
+// ASSIGNMENT: ASG3
 // NAME 1: Shlok Gharia
 // EMAIL 1: sgharia@ucsc.edu
 // NAME 2: Arsh Malhotra
