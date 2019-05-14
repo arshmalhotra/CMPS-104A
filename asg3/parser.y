@@ -36,11 +36,11 @@ extern int exit_status;
 %token  TOK_ASTRING TOK_ANARRAY TOK_CALL TOK_EXC
 %token  TOK_EQ TOK_NEQ TOK_LEQ TOK_GEQ
 %token  TOK_INTCON TOK_CHARCON TOK_STRINGCON
-%token  TOK_BLOCK TOK_POS TOK_NEG
+%token  TOK_ALLOC TOK_BLOCK TOK_POS TOK_NEG
 
 %token  '('  ')'  '['  ']'  '{'  '}'  ';'  ','  '.'
 %token  '<'  '>'  '='  '+'  '-'  '*'  '/'  '%'  '!'
-%token  '\''  '"'  '\\' '->'
+%token  '\''  '"'  '\\'
 
 %right  TOK_IF TOK_ELSE
 %right  '='
@@ -62,7 +62,7 @@ start     : program                   { $$ = $1 = nullptr; }
 
 program   : program structdef         { $$ = $1->adopt($2); }
           | program function          { $$ = $1->adopt($2); }
-          | program stmt              { $$ = $1->adopt($2); }
+          | program vardecl           { $$ = $1->adopt($2); }
           | program error '}'         { exit_status = EXIT_FAILURE;
                                         destroy($3); $$ = $1; }
           | program error ';'         { exit_status = EXIT_FAILURE;
@@ -74,7 +74,7 @@ structdef : TOK_STRUCT IDENT '{' '}'  { destroy($3, $4);
                                         $2->swap(TOK_TYPEID);
                                         $$ = $1->adopt($2); }
           | TOK_STRUCT IDENT '{' attr '}'
-                                      { destroy($3, $4);
+                                      { destroy($3, $5);
                                         $2->swap(TOK_TYPEID);
                                         $$ = $1->adopt($2, $4); }
           ;
@@ -123,14 +123,14 @@ decl      : type IDENT                { $2->swap(TOK_TYPEID);
 block     : '{' '}'                   { destroy($2);
                                         $1->swap(TOK_BLOCK);
                                         $$ = $1; }
-          | '{' statments '}'         { destroy($2);
+          | '{' statments '}'         { destroy($3);
                                         $1->swap(TOK_BLOCK);
-                                        $$ = $2->adopt($1); }
+                                        $$ = $1->adopt($2); }
           | ';'                       { $1->swap(TOK_BLOCK);
                                         $$ = $1; }
           ;
 
-statements: statement statements      { $$ = $1->adopt($2); }
+statements : statement statements     { $$ = $1->adopt($2); }
           | statement                 { $$ = $1; }
           ;
 
@@ -230,10 +230,10 @@ params    : expr ',' params           { destroy($2);
           ;
 
 variable  : IDENT                     { $$ = $1; }
-          | expr '[' expr ']'         { destroy($3);
+          | expr '[' expr ']'         { destroy($4);
                                         $2->swap(TOK_INDEX);
                                         $$ = $2->adopt($1, $3); }
-          | expr '->' IDENT           { $3->swap(TOK_ATTR);
+          | expr TOK_ATTR IDENT       { $3->swap(TOK_ATTR);
                                         $$ = $2->adopt($1, $3); }
           ;
 
