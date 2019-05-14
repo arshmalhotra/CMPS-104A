@@ -58,6 +58,9 @@ CHAR            ('([^\\'\n]|\\[\\'"0nt])')
 (==)            { return scanner_token (TOK_EQ); }
 (!=)            { return scanner_token (TOK_NEQ); }
 
+{STRING}        { return scanner_token (TOK_STRINGCON); }
+{CHAR}          { return scanner_token (TOK_CHARCON); }
+
 (\[\])          { return scanner_token (TOK_ARRAY); }
 {NUMBER}        { return scanner_token (NUMBER); }
 {IDENT}         { return scanner_token (IDENT); }

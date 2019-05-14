@@ -21,7 +21,6 @@
 #include "auxlib.h"
 #include "string_set.h"
 #include "lyutils.h"
-#include "emitter.h"
 
 using namespace std;
 
@@ -77,17 +76,18 @@ void cpplines (FILE* pipe, const char* filename) {
     string tokFilename = fname.substr(0, fname.size()-3) + ".tok";
     const char* tokFile = tokFilename.c_str();
     outFile = fopen(tokFile, "w");
-    int token;
-    while((token = yylex()) != YYEOF) {
-      if(token == -1) {
-        fprintf(stderr, "%s",
-          "Encountered bad set of characters\n");
-        exit_status = EXIT_FAILURE;
-        break;
-      }
-    }
+    int yy_rc = yyparse();
+    fclose(outFile);
+    string astFilename = fname.substr(0, fname.size()-3) + ".ast";
+    const char* astFile = astFilename.c_str();
+    outFile = fopen(astFile, "w");
+    astree::print(outFile, parser::root);
     fclose(outFile);
     linenr++;
+    if(yy_rc != 0) {
+       exit_status = EXIT_FAILURE;
+       cout << "ERROR in yy_rc" << endl;
+    }
   }
 }
 
@@ -109,7 +109,6 @@ void cpp_popen (const char* filename) {
                cpp_command.c_str(), fileno (yyin));
     }
     cpplines (yyin, basefilename);
-    int parse_rc = yyparse();
     cpp_pclose();
 
     string fname = std::string(basefilename);
@@ -118,21 +117,6 @@ void cpp_popen (const char* filename) {
     FILE* pipeout = fopen(strFile, "w+");
     string_set::dump (pipeout);
     fclose (pipeout);
-
-    yylex_destroy();
-    if (yydebug or yy_flex_debug) {
-      fprintf (stderr, "Dumping parser::root:\n");
-      if (parser::root != nullptr) parser::root->dump_tree(stderr);
-      fprintf (stderr, "Dumping string_set:\n");
-      string_set::dump (stderr);
-    }
-    if (parse_rc) {
-      errprintf ("parse failed (%d)\n", parse_rc);
-    } else {
-      astree::print (stdout, parser::root);
-      emit_sm_code (parser::root);
-      delete parser::root;
-    }
   }
 }
 
