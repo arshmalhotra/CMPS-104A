@@ -143,7 +143,7 @@ statement : block                     { $$ = $1; }
                                         $$ = $1; }
           ;
 
-vardecl   : type IDENT ';'            { $3->swap(TOK_VAR)
+vardecl   : type IDENT ';'            { $3->swap(TOK_VAR);
                                         $2->swap(TOK_TYPEID);
                                         $$ = $3->adopt($1, $2); }
           | type IDENT '=' expr ';'   { destroy($5);
@@ -196,9 +196,9 @@ binop     : expr '=' expr             { $$ = $2->adopt($1, $3); }
           | expr TOK_NEQ expr         { $$ = $2->adopt($1, $3); }
           ;
 
-unop      : '+' expr %prec POS        { $$ = $1->sym($2, TOK_POS); }
-          | '-' expr %prec NEG        { $$ = $1->sym($2, TOK_NEG); }
-          | '!' expr %prec TOK_EXC    { $$ = $1->sym($2, TOK_EXC); }
+unop      : '+' expr %prec POS        { $$ = $1->adopt_sym($2, TOK_POS); }
+          | '-' expr %prec NEG        { $$ = $1->adopt_sym($2, TOK_NEG); }
+          | '!' expr %prec TOK_EXC    { $$ = $1->adopt_sym($2, TOK_EXC); }
           ;
 
 allocator : TOK_ALLOC '<' TOK_STRING '>' '(' expr ')'
