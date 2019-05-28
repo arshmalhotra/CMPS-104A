@@ -1,4 +1,4 @@
-TOK_FUNC#include "symtable.h"
+#include "symtable.h"
 
 symbol_table structs;
 unordered_map<string, symbol_table*> fields;
