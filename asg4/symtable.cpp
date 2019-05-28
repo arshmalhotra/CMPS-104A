@@ -193,7 +193,7 @@ bool type_check (astree* node) {
          break;
       }
       case TOK_VOID: {
-         if(!(node->parent->symbol == TOK_FUNC) {
+         if(!(node->parent->symbol == TOK_FUNC)) {
             cerr << "Cannot have void in non-function" << endl;
             return false;
          }
