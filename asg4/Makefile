@@ -49,7 +49,7 @@ ${PARSECPP} ${PARSEHDR} : ${BISONSRC}
 ci : ${GIT}
 
 clean :
-	- rm ${OBJECTS} ${ALLGENS} ${DEPSFILE} *.output *.tok *.str *.ast
+	- rm ${OBJECTS} ${ALLGENS} ${DEPSFILE} *.output *.tok *.str *.ast *.sym
 
 spotless : clean
 	- rm ${EXECBIN}
