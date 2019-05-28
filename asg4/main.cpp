@@ -111,9 +111,9 @@ void cpp_popen (const char* filename) {
   fclose (pipeout);
 
   symtable();
-  name = targetFile.substr(0, targetFile.size()-3) + ".sym";
-  fname = name.c_str();
-  outFile = fopen(fname, "w");
+  string symFilename = fname.substr(0, fname.size()-3) + ".sym";
+  const char* symFile = symFilename.c_str();
+  outFile = fopen(symFile, "w");
   bool rc = semantic_analysis(parser::root, outFile);
   if(rc == false) exit_status = EXIT_FAILURE;
   fclose(outFile);
