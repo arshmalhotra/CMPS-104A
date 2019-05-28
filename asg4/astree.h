@@ -12,6 +12,7 @@
 #include <vector>
 using namespace std;
 
+#include "symtable.h"
 #include "auxlib.h"
 
 struct location {
