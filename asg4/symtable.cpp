@@ -1,4 +1,4 @@
-#include "symtable.h"
+TOK_FUNC#include "symtable.h"
 
 symbol_table structs;
 unordered_map<string, symbol_table*> fields;
@@ -193,47 +193,15 @@ bool type_check (astree* node) {
          break;
       }
       case TOK_VOID: {
-         if(!(node->parent->symbol == TOK_FUNCTION
-            || node->parent->symbol == TOK_PROTOTYPE)) {
+         if(!(node->parent->symbol == TOK_FUNC) {
             cerr << "Cannot have void in non-function" << endl;
-            return false;
-         }
-         break;
-      }
-      case TOK_VARDECL: {
-         astree* n;
-         if(node->children[0]->symbol != TOK_ARRAY)
-            n = node->children[0]->children[0];
-         else
-            n = node->children[0]->children[1];
-
-         if(!matching(n->attributes,
-            node->children[1]->attributes,
-            n->struct_name, node->children[1]->struct_name)) {
-            cerr << "Incompatible types" << endl;
-            return false;
-         }
-        break;
-      }
-      case TOK_RETURNVOID: {
-         node->attributes[ATTR_void] = 1;
-         astree* n = node;
-         while (n != NULL && n->symbol != TOK_FUNCTION) {
-            n = n->parent;
-         }
-         if (n == NULL) {
-            cerr << "Cannot have return outside of a function" << endl;
-            return false;
-         }
-         if(!n->children[0]->children[0]->attributes[ATTR_void]) {
-            cerr << "Incompatible return type" << endl;
             return false;
          }
          break;
       }
       case TOK_RET: {
          astree* n = node;
-         while (n != NULL && n->symbol != TOK_FUNCTION) {
+         while (n != NULL && n->symbol != TOK_FUNC) {
             n = n->parent;
          }
          if (n == NULL) {
@@ -359,7 +327,7 @@ bool type_check (astree* node) {
          node->attributes[ATTR_vreg] = 1;
          break;
       }
-      case TOK_NEWSTRING: {
+      case TOK_ASTRING: {
          if(!node->children[1]->attributes[ATTR_int]) {
             cerr << "Size is not integer" << endl;
             return false;
@@ -368,7 +336,7 @@ bool type_check (astree* node) {
          node->attributes[ATTR_string] = 1;
          break;
       }
-      case TOK_IDENT: {
+      case IDENT: {
          string* name = const_cast<string*>(node->lexinfo);
          symbol* sym = get_symbol(node);
          if(sym == NULL) {
@@ -441,17 +409,17 @@ bool type_check (astree* node) {
          node->attributes[ATTR_const] = 1;
          break;
       }
-      case TOK_STR_CONST: {
+      case TOK_STRINGCON: {
          node->attributes[ATTR_const] = 1;
          node->attributes[ATTR_string] = 1;
          break;
       }
-      case TOK_INT_CONST: {
+      case TOK_INTCON: {
          node->attributes[ATTR_const] = 1;
          node->attributes[ATTR_int] = 1;
          break;
       }
-      case TOK_CHAR_CONST: {
+      case TOK_CHARCON: {
          node->attributes[ATTR_const] = 1;
          node->attributes[ATTR_int] = 1;
          break;
@@ -464,7 +432,7 @@ bool type_check (astree* node) {
          node->attributes[ATTR_string] = 1;
          break;
       }
-      case TOK_NEWARRAY: {
+      case TOK_ANARRAY: {
          attr_bitset attrs = node->children[0]->attributes;
          if(attrs[ATTR_void]
             || attrs[ATTR_array]
@@ -497,7 +465,7 @@ bool semantic_analysis (astree* node, FILE* out) {
          symbol_stack.push_back(nullptr);
          break;
       }
-      case TOK_FUNCTION: {
+      case TOK_FUNC: {
          string* name = const_cast<string*>(
             node->children[0]->children[0]->lexinfo);
 
@@ -592,65 +560,6 @@ bool semantic_analysis (astree* node, FILE* out) {
          fprintf(out, "\n");
          break;
       }
-      case TOK_PROTOTYPE: {
-         astree* t0 = node->children[0];
-         string* name = const_cast<string*>(t0->children[0]->lexinfo);
-         if(t0->symbol == TOK_ARRAY)
-            name = const_cast<string*>(t0->children[1]->lexinfo);
-
-         if(identifiers.find(name) != identifiers.end()) {
-            if(identifiers[name]->attributes[ATTR_function] == 1) {
-               cerr << "Prototype already declared" << endl;
-               break;
-            }
-         }
-
-         if(symbol_stack.back() == nullptr) {
-            symbol_stack.pop_back();
-            symbol_stack.push_back(new symbol_table);
-         }
-
-         symbol* sym = setup_function(node);
-         sym->attributes[ATTR_prototype] = 1;
-
-         block_stack.push_back(next_block++);
-
-         sym->parameters = new vector<symbol*>;
-         if(t0->symbol == TOK_ARRAY) {
-            sym->attributes[ATTR_array] = 1;
-            t0->children[1]->attributes = sym->attributes;
-            t0->children[0]->attributes[ATTR_array] = 1;
-         }
-         else {
-            t0->children[0]->attributes = sym->attributes;
-         }
-
-         symbol_stack.push_back(new symbol_table);
-         astree* t1 = node->children[1];
-         for(uint i = 0; i < t1->children.size(); ++i) {
-            astree* current = node->children[1]->children[i];
-            symbol* param = setup_symbol(t1->children[i]);
-            param->attributes[ATTR_param] = 1;
-            sym->parameters->push_back(param);
-            current->children[0]->attributes = param->attributes;
-            current->children[0]->blocknr = param->blocknr;
-            current->children[0]->struct_name = param->struct_name;
-
-            string* param_name = const_cast<string*>(
-               current->children[0]->lexinfo);
-
-            symbol_entry param_entry (param_name, param);
-
-            symbol_stack.back()->insert(param_entry);
-            print_attributes (param, param_name, out);
-         }
-         symbol_entry entry (name, sym);
-
-         symbol_stack.back()->insert(entry);
-         identifiers.insert(entry);
-
-         break;
-      }
       case TOK_STRUCT: {
          string* name =const_cast<string*>(node->children[0]->lexinfo);
          symbol* sym = new symbol;
@@ -719,66 +628,6 @@ bool semantic_analysis (astree* node, FILE* out) {
          fprintf(out, "\n");
          break;
       }
-      case TOK_VARDECL: {
-
-         if(symbol_stack.back() == nullptr) {
-            symbol_stack.back() = new symbol_table;
-         }
-
-
-         string* name = const_cast<string*>(
-            node->children[0]->children[0]->lexinfo);
-
-         if(node->children[0]->symbol == TOK_ARRAY)
-            name = const_cast<string*>(
-               node->children[0]->children[1]->lexinfo);
-
-         if(in_scope_find_var(name)) {
-            cerr << "Variable already declared in this scope" << endl;
-            return false;
-         }
-
-         symbol* sym = new symbol;
-         if(node->children[1]->symbol == TOK_IDENT) {
-            string* find_name = const_cast<string*>(
-               node->children[1]->lexinfo);
-
-            if(!find_var(find_name)) {
-               cerr << "Variable assignment not valid" << endl;
-               break;
-            }
-            symbol* assignee = get_symbol(node->children[1]);
-
-            set_attributes(node->children[0], sym);
-            sym->attributes = assignee->attributes;
-
-            sym->struct_name = assignee->struct_name;
-            sym->parameters = assignee->parameters;
-            sym->fields = assignee->fields;
-         }
-         else {
-            if(node->children[0]->symbol == TOK_ARRAY) {
-               sym = setup_symbol(node->children[0]->children[0]);
-               sym->attributes[ATTR_array] = 1;
-            }
-            else
-               sym = setup_symbol(node->children[0]);
-         }
-
-         symbol_entry entry (name, sym);
-         symbol_stack.back()->insert(entry);
-         astree* t0 = node->children[0];
-         if(t0->symbol == TOK_ARRAY) {
-            t0->children[1]->attributes = sym->attributes;
-            t0->children[1]->struct_name = sym->struct_name;
-            t0->children[0]->attributes[ATTR_array] = 1;
-         } else {
-            t0->children[0]->attributes = sym->attributes;
-            t0->children[0]->struct_name = sym->struct_name;
-         }
-         print_attributes(sym, name, out);
-         break;
-      }
       default: break;
    }
 
@@ -790,7 +639,7 @@ bool semantic_analysis (astree* node, FILE* out) {
    bool rc = type_check(node);
    if(rc == false) return false;
    switch (node->symbol) {
-      case TOK_IDENT: {
+      case IDENT: {
          string* name = const_cast<string*>(node->lexinfo);
          if(find_var(name) == false) {
             cerr << "Variable not declared previously" << endl;
@@ -801,8 +650,7 @@ bool semantic_analysis (astree* node, FILE* out) {
    }
 
    if(node->symbol == TOK_BLOCK
-      || node->symbol == TOK_FUNCTION
-      || node->symbol == TOK_PROTOTYPE) {
+      || node->symbol == TOK_FUNC) {
 
       symbol_stack.pop_back();
       block_stack.pop_back();
