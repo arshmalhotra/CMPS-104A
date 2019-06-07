@@ -232,7 +232,7 @@ string create_stmt(astree* node, bool gvar) {
             cout << " " << *(node->lexinfo)<<" "<<*(sym2->lexinfo);
             break;
          }
-      }TOK_PROTO
+      }
    }
    fprintf(out, "%s%s;\n", TAB, expr.c_str());
    return op;
@@ -305,7 +305,7 @@ string traverse_block(astree* node) {
 
       // Statements
       case TOK_TYPEID: {
-         return *(node->struct_name);
+         return node->struct_name;
       }
       case TOK_VAR: {
          string decl = create_stmt(node, false);
@@ -442,7 +442,7 @@ string traverse_block(astree* node) {
          } else if(node->attributes[ATTR_string]) {
             type = "char ";
          } else if(node->attributes[ATTR_struct]) {
-            type = "struct s_" + *(node->struct_name) + " *";
+            type = "struct s_" + node->struct_name + " *";
          }
 
          vreg = "a"+to_string(reg++);
@@ -450,8 +450,8 @@ string traverse_block(astree* node) {
             type.c_str(), vreg.c_str(),
 
          traverse_block(node->children[0]).c_str(),
-            (node->children[0]->struct_name)->c_str(),
-            (node->children[1]->lexinfo)->c_str());
+            (node->children[0]->struct_name).c_str(),
+            (node->children[1]->lexinfo).c_str());
 
          return "(*"+vreg+")";
       }
@@ -481,10 +481,10 @@ string traverse_block(astree* node) {
       case TOK_NULL:{
          return "0";
       }
-      case TOK_IDENT: {
+      case IDENT: {
          return var_search(node);
       }
-      case TOK_NEWARRAY: {
+      case TOK_ANARRAY: {
          astree* sym1 = node->children[0];
          string arr;
 
@@ -512,7 +512,7 @@ string traverse_block(astree* node) {
          } else if(node->attributes[ATTR_string]) {
             type = "char *";
          } else if(node->attributes[ATTR_struct]) {
-            type = "struct s_" + *(node->children[0]->struct_name) +
+            type = "struct s_" + node->children[0]->struct_name +
             " **";
          }
 
@@ -558,13 +558,13 @@ void print_function(astree* node) {
 }
 
 void print_struct(astree* node) {
-   if(node->struct_name == NULL)
+   if(node->struct_name == "")
       return;
 
-   fprintf(out, "struct s_%s {\n", node->struct_name->c_str());
+   fprintf(out, "struct s_%s {\n", (node->struct_name).c_str());
 
    // May not be a necessary check
-   if(structs.find(node->struct_name) == structs.end())
+   if(structs.find(*(node->struct_name)) == structs.end())
       return;
    if(node->children.size() > 1) {
       astree* list = node->children[1];
