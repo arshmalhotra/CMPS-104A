@@ -31,6 +31,10 @@ extern FILE* outFile;
 int exit_status;
 string cpp_command;
 string basefilename;
+extern int yy_flex_debug;
+extern int yydebug;
+extern FILE* yyin;
+extern FILE* outFile;
 
 void print_usage() {
   errprintf ("Usage: %s [-ly] [-@(flags)...] [-D(string)] filename\n",
