@@ -8,7 +8,6 @@
 DEPSFILE  = Makefile.deps
 CPP       = g++ -g -O0 -Wall -Wextra -std=gnu++14
 MKDEPS    = g++ -MM -std=gnu++14
-GRIND     = valgrind --leak-check=full --show-reachable=yes
 FLEX      = flex --outfile=${LEXCPP}
 BISON     = bison --defines=${PARSEHDR} --output=${PARSECPP}
 
@@ -27,6 +26,7 @@ ALLCSRC   = ${CPPSRC} ${CGENS}
 OBJECTS   = ${ALLCSRC:.cpp=.o}
 LEXOUT    = yylex.output
 PARSEOUT  = yyparse.output
+SRCFILES  = ${HDRSRC} ${CPPSRC} Makefile
 
 all : ${EXECBIN}
 
@@ -46,11 +46,11 @@ ${LEXCPP} : ${FLEXSRC}
 ${PARSECPP} ${PARSEHDR} : ${BISONSRC}
 	${BISON} ${BISONSRC}
 
-ci : ${GIT}
+ci :
+	cid + ${SRCFILES}
 
 clean :
-	- rm ${OBJECTS} ${ALLGENS} ${DEPSFILE} *.output *.tok *.str \
-	*.ast *.sym *.tab.h *tab.c *.stackdump *.oil
+	- rm ${OBJECTS} ${ALLGENS} ${DEPSFILE} *.output *.tok *.str *.ast *.sym *.oil
 
 spotless : clean
 	- rm ${EXECBIN}
@@ -61,12 +61,6 @@ deps : ${ALLCSRC}
 
 test: ${EXECBIN}
 	./oc test.oc
-
-grind:
-	${GRIND} ./${EXECBIN} test.oc
-
-remake: spotless ${EXECBIN}
-
 
 ${DEPSFILE} :
 	@ touch ${DEPSFILE}
