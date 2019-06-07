@@ -31,11 +31,11 @@ extern int exit_status;
 %token  ROOT IDENT NUMBER UNOP BINOP
 %token  TOK_IF TOK_ELSE TOK_WHILE TOK_RET TOK_IFELSE
 %token  TOK_INT TOK_STRING TOK_STRUCT TOK_VOID TOK_PTR
-%token  TOK_VAR TOK_FUNC TOK_PARAM TOK_INDEX
+%token  TOK_VAR TOK_FUNC TOK_PARAM TOK_INDEX TOK_PROTO
 %token  TOK_NULL TOK_ARRAY TOK_TYPEID TOK_ATTR
 %token  TOK_ASTRING TOK_ANARRAY TOK_CALL TOK_EXC
 %token  TOK_EQ TOK_NEQ TOK_LEQ TOK_GEQ
-%token  TOK_INTCON TOK_CHARCON TOK_STRINGCON
+%token  TOK_INTCON TOK_CHARCON TOK_STRINGCON TOK_RETURNVOID
 %token  TOK_ALLOC TOK_BLOCK TOK_POS TOK_NEG
 
 %token  '('  ')'  '['  ']'  '{'  '}'  ';'  ','  '.'
@@ -110,6 +110,14 @@ function  : decl '('  ')' block       { $3->swap(TOK_FUNC);
                                         $2->swap(TOK_PARAM);
                                         $2->adopt($3);
                                         $$ = $4->adopt($1, $2, $5); }
+          | decl '(' decls ')' ';'    { $4->swap(TOK_PROTO);
+                                        $2->swap(TOK_PARAM);
+                                        $2->adopt($3);
+                                        $$ = $4->adopt($1, $2, $5); }
+          | decl '(' ')' ';'          { $4->swap(TOK_PROTO);
+                                        $2->swap(TOK_PARAM);
+                                        $2->adopt($3);
+                                        $$ = $4->adopt($1, $2, $5); }
           ;
 
 decls     : decl ',' decls            { destroy($2);
@@ -168,9 +176,10 @@ ifelse    : TOK_IF '(' expr ')' statement %prec TOK_IF
                                         $$ = $1->adopt($3, $5, $7); }
           ;
 
-return    : TOK_RET ';'            { destroy($2);
+return    : TOK_RET ';'               { destroy($2);
+                                        $1->swap (TOK_RETURNVOID);
                                         $$ = $1; }
-          | TOK_RET expr ';'       { destroy($3);
+          | TOK_RET expr ';'          { destroy($3);
                                         $$ = $1->adopt($2); }
           ;
 

@@ -56,7 +56,7 @@ string format_var(astree* node) {
       if(var->parent->symbol == TOK_ARRAY)
          val += "struct s_" + var_search(var) + "* ";
       else
-         val += "struct s_"+ *(node->struct_name) +"* ";
+         val += "struct s_"+ node->struct_name +"* ";
    } if (attr[ATTR_string] == 1) {
       val += "char*";
    }
@@ -68,7 +68,7 @@ string format_var(astree* node) {
    }
 
    if(attr[ATTR_field]) {
-      val += "f_"+ *(var->struct_name)+var_search(var);
+      val += "f_"+ var->struct_name+var_search(var);
    }
 
    if(attr[ATTR_param]) {
@@ -131,7 +131,7 @@ string create_stmt(astree* node, bool gvar) {
          if(node->blocknr == 0)
             expr += var_search(node->children[0]->children[0]) + " = ";
          else
-            expr += "struct s_" + *(sym1->struct_name) + "* " +
+            expr += "struct s_" + sym1->struct_name + "* " +
                var_search(node->children[0]->children[0]) + " = ";
          break;
       }
@@ -172,7 +172,7 @@ string create_stmt(astree* node, bool gvar) {
                   +"]";
             break;
          }
-         case TOK_IDENT: {
+         case IDENT: {
             expr += var_search(sym2);
             break;
          }
@@ -180,9 +180,9 @@ string create_stmt(astree* node, bool gvar) {
             expr += " "+*(node->lexinfo)+" 0";
          }
          case TOK_INT:
-         case TOK_INT_CONST:
+         case TOK_INTCON:
          case TOK_STRING:
-         case TOK_STR_CONST: {
+         case TOK_STRINGCON: {
             expr += *(sym2->lexinfo);
             break;
          }
@@ -206,7 +206,7 @@ string create_stmt(astree* node, bool gvar) {
             expr += symbol1+" "+*(sym2->lexinfo)+" "+symbol2;
             break;
          }
-         case TOK_NEWARRAY: {
+         case TOK_ANARRAY: {
             expr += "xcalloc ("+*(sym2->children[1]->lexinfo) +
                ", sizeof(" + arr + "))";
             break;
@@ -220,7 +220,7 @@ string create_stmt(astree* node, bool gvar) {
          }
          case TOK_NEW: {
             expr += "xcalloc (1, sizeof (struct s_" +
-               *(sym2->struct_name) + "))";
+               sym2->struct_name + "))";
             break;
          }
          case '.': {
@@ -232,7 +232,7 @@ string create_stmt(astree* node, bool gvar) {
             cout << " " << *(node->lexinfo)<<" "<<*(sym2->lexinfo);
             break;
          }
-      }
+      }TOK_PROTO
    }
    fprintf(out, "%s%s;\n", TAB, expr.c_str());
    return op;
@@ -259,7 +259,7 @@ string function_call(astree* node) {
    }
    string reg;
 
-   if(node->parent->symbol != TOK_VARDECL) {
+   if(node->parent->symbol != TOK_VAR) {
       if(node->attributes[ATTR_void]) {
          fprintf(out, "%s__%s(", TAB,
             (node->children[0]->lexinfo)->c_str());
@@ -307,7 +307,7 @@ string traverse_block(astree* node) {
       case TOK_TYPEID: {
          return *(node->struct_name);
       }
-      case TOK_VARDECL: {
+      case TOK_VAR: {
          string decl = create_stmt(node, false);
          return decl;
          break;
@@ -473,9 +473,9 @@ string traverse_block(astree* node) {
 
          return vreg;
       }
-      case TOK_CHAR_CONST:
-      case TOK_INT_CONST:
-      case TOK_STR_CONST: {
+      case TOK_CHARCON:
+      case TOK_INTCON:
+      case TOK_STRINGCON: {
          return *(node->lexinfo);
       }
       case TOK_NULL:{
@@ -610,7 +610,7 @@ bool traverse(astree* node) {
    }
 
    for(uint i = 0; i < node->children.size(); ++i) {
-      if(node->children[i]->symbol == TOK_VARDECL) {
+      if(node->children[i]->symbol == TOK_VAR) {
          if(node->children[i]->children[0]->symbol != TOK_STRING) {
             print_var(node->children[i]);
             gvars.push_back(node->children[i]);
@@ -619,7 +619,7 @@ bool traverse(astree* node) {
    }
 
    for(uint i = 0; i < node->children.size(); ++i) {
-      if(node->children[i]->symbol == TOK_FUNCTION) {
+      if(node->children[i]->symbol == TOK_FUNC) {
          print_function(node->children[i]);
       }
    }
@@ -631,9 +631,9 @@ bool traverse(astree* node) {
    }
    string status;
    for(uint i = 0; i < node->children.size(); ++i) {
-      if(node->children[i]->symbol != TOK_FUNCTION
-         && node->children[i]->symbol != TOK_PROTOTYPE
-         && node->children[i]->symbol != TOK_VARDECL
+      if(node->children[i]->symbol != TOK_FUNC
+         && node->children[i]->symbol != TOK_PROTO
+         && node->children[i]->symbol != TOK_VAR
          && node->children[i]->symbol != TOK_STRUCT) {
          status = traverse_block(node->children[i]);
          if(status == "ERROR") return false;
