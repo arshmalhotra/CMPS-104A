@@ -21,6 +21,7 @@
 #include "auxlib.h"
 #include "string_set.h"
 #include "lyutils.h"
+#include "intermediate.h"
 
 using namespace std;
 
@@ -122,6 +123,11 @@ void cpp_popen (const char* filename) {
   const char* astFile = astFilename.c_str();
   outFile = fopen(astFile, "w");
   astree::print(outFile, parser::root);
+  fclose(outFile);
+
+  string oilFilename = fname.substr(0, fname.size()-3) + ".oil";
+  const char* oilFile = oilFilename.c_str();
+  outFile = fopen(oilFile, "w");
   fclose(outFile);
 }
 
