@@ -595,17 +595,17 @@ void print_var(astree* node) {
 
 bool traverse(astree* node) {
    fprintf(out, "#define __OCLIB_C__\n#include \"oclib.oh\"\n\n");
-
+printf("one\n");
    for(uint i = 0; i < node->children.size(); ++i) {
       if(node->children[i]->symbol == TOK_STRUCT) {
          print_struct(node->children[i]);
       }
    }
-
+printf("two\n");
    for(uint i = 0; i < string_stack.size(); ++i) {
       print_string(string_stack[i]);
    }
-
+printf("three\n");
    for(uint i = 0; i < node->children.size(); ++i) {
       if(node->children[i]->symbol == TOK_VAR) {
          if(node->children[i]->children[0]->symbol != TOK_STRING) {
@@ -614,18 +614,19 @@ bool traverse(astree* node) {
          }
       }
    }
-
+printf("four\n");
    for(uint i = 0; i < node->children.size(); ++i) {
       if(node->children[i]->symbol == TOK_FUNC) {
          print_function(node->children[i]);
       }
    }
-
+printf("five\n");
 
    fprintf(out, "void __ocmain (void)\n{\n");
    for(uint i = 0; i < gvars.size(); ++i) {
       create_stmt(gvars[i], true).c_str();
    }
+printf("six\n");
    string status;
    for(uint i = 0; i < node->children.size(); ++i) {
       if(node->children[i]->symbol != TOK_FUNC
@@ -636,6 +637,7 @@ bool traverse(astree* node) {
          if(status == "ERROR") return false;
       }
    }
+printf("seven\n");
    fprintf(out, "}\n");
    return true;
 }
