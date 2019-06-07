@@ -303,7 +303,6 @@ string traverse_block(astree* node) {
 
    switch(node->symbol) {
 
-      // Statements
       case TOK_TYPEID: {
          return node->struct_name;
       }
@@ -335,7 +334,6 @@ string traverse_block(astree* node) {
             operand.c_str(), node->lloc.filenr,
             node->lloc.linenr, node->lloc.offset);
 
-         // Traverse through while block
          traverse_block(node->children[1]);
 
          fprintf(out, "%s", TAB);
@@ -410,7 +408,6 @@ string traverse_block(astree* node) {
          break;
       }
 
-      // Expressions
       case TOK_NEG:
       case TOK_POS:
       case TOK_EXC: {
@@ -563,8 +560,8 @@ void print_struct(astree* node) {
 
    fprintf(out, "struct s_%s {\n", (node->struct_name).c_str());
 
-   // May not be a necessary check
-   if(structs.find(node->struct_name) == structs.end())
+   string* name = const_cast<string*>(node->struct_name);
+   if(structs.find(name) == structs.end())
       return;
    if(node->children.size() > 1) {
       astree* list = node->children[1];
