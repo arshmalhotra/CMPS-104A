@@ -12,7 +12,7 @@ GRIND     = valgrind --leak-check=full --show-reachable=yes
 FLEX      = flex --outfile=${LEXCPP}
 BISON     = bison --defines=${PARSEHDR} --output=${PARSECPP}
 
-MODULES   = astree lyutils string_set auxlib symtable
+MODULES   = astree lyutils string_set auxlib symtable intermediate
 HDRSRC    = ${MODULES:=.h}
 CPPSRC    = ${MODULES:=.cpp} main.cpp
 FLEXSRC   = scanner.l
@@ -49,7 +49,8 @@ ${PARSECPP} ${PARSEHDR} : ${BISONSRC}
 ci : ${GIT}
 
 clean :
-	- rm ${OBJECTS} ${ALLGENS} ${DEPSFILE} *.output *.tok *.str *.ast *.sym
+	- rm ${OBJECTS} ${ALLGENS} ${DEPSFILE} *.output *.tok *.str \
+	*.ast *.sym *.tab.h *tab.c *.stackdump *.oil
 
 spotless : clean
 	- rm ${EXECBIN}
@@ -58,8 +59,14 @@ deps : ${ALLCSRC}
 	@ echo "# ${DEPSFILE} created `date` by ${MAKE}" >${DEPSFILE}
 	${MKDEPS} ${ALLCSRC} >>${DEPSFILE}
 
+test: ${EXECBIN}
+	./oc test.oc
+
 grind:
 	${GRIND} ./${EXECBIN} test.oc
+
+remake: spotless ${EXECBIN}
+
 
 ${DEPSFILE} :
 	@ touch ${DEPSFILE}
