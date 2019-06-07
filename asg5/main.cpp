@@ -52,7 +52,7 @@ void astree::print_tok (FILE* outfile, astree* tree) {
       tree->lexinfo->c_str());
 }
 
-void cpplines (FILE* pipe, const char* filename) {
+void cpplines (FILE* pipe) {
   int linenr = 1;
   for (;;) {
     char buffer[LINESIZE];
@@ -93,16 +93,21 @@ void cpp_pclose () {
 }
 
 void cpp_popen (const char* filename) {
+  printf("does");
   cpp_command = CPP + " " + filename;
   DEBUGF('c', "command=\"%s\"\n", cpp_command.c_str());
   yyin = popen (cpp_command.c_str(), "r");
+  printf("it");
   if (yyin == nullptr) {
     exit_status = EXIT_FAILURE;
     fprintf (stderr, "%s: %s: %s\n",
              exec::execname.c_str(), cpp_command.c_str(), strerror (errno));
   }else {
-    cpplines (yyin, basefilename);
+    printf("get");
+    cpplines (yyin);
+    printf("here\n");
     cpp_pclose();
+    printf("does it get here\n");
   }
 
   // string basefilename = std::string(basefilename);
