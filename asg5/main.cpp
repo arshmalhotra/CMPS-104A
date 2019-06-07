@@ -21,6 +21,7 @@
 #include "auxlib.h"
 #include "string_set.h"
 #include "lyutils.h"
+#include "intermediate.h"
 
 using namespace std;
 

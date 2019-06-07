@@ -178,6 +178,7 @@ string create_stmt(astree* node, bool gvar) {
          }
          case TOK_NULL: {
             expr += " "+*(node->lexinfo)+" 0";
+            break;
          }
          case TOK_INT:
          case TOK_INTCON:
