@@ -68,10 +68,10 @@ void cpplines (FILE* pipe, const char* filename) {
       sscanf (buffer, "# %d \"%[^\"]\"",
             &linenr, inputname);
 
-      // Create and open .tok file
-      const char* fname = (
-      targetFile.substr(0, targetFile.size()-3) + ".tok").c_str();
-      outFile = fopen(fname, "w");
+      string fname = std::string(filename);
+      string tokFilename = fname.substr(0, fname.size()-3) + ".tok";
+      const char* tokFile = tokFilename.c_str();
+      outFile = fopen(tokFile, "w");
       int yy_rc = yyparse();
       fclose(outFile);
 
