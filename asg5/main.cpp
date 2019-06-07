@@ -21,7 +21,6 @@
 #include "auxlib.h"
 #include "string_set.h"
 #include "lyutils.h"
-#include "intermediate.h"
 
 using namespace std;
 
@@ -30,11 +29,7 @@ constexpr size_t LINESIZE = 1024;
 extern FILE* outFile;
 int exit_status;
 string cpp_command;
-string basefilename;
-extern int yy_flex_debug;
-extern int yydebug;
-extern FILE* yyin;
-extern FILE* outFile;
+char* basefilename;
 
 void print_usage() {
   errprintf ("Usage: %s [-ly] [-@(flags)...] [-D(string)] filename\n",
@@ -58,18 +53,27 @@ void astree::print_tok (FILE* outfile, astree* tree) {
 
 void cpplines (FILE* pipe, const char* filename) {
   int linenr = 1;
-  char inputname[LINESIZE];
-  strcpy (inputname, filename);
   for (;;) {
     char buffer[LINESIZE];
-    char* fgets_rc = fgets (buffer, LINESIZE, pipe);
-    if (fgets_rc == NULL) break;
+    const char* fgets_rc = fgets (buffer, LINESIZE, pipe);
+    if (fgets_rc == nullptr) break;
     chomp (buffer, '\n');
     char inputname[LINESIZE];
-    sscanf (buffer, "# %d \"%[^\"]\"",
-            &linenr, inputname);
-
-    string tokFilename = basefilename.substr(0, basefilename.size()-3) + ".tok";
+    int sscanf_rc = sscanf (buffer, "# %d \"%[^\"]\"",
+                            &linenr, inputname);
+    if (sscanf_rc == 2) {
+      continue;
+    }
+    char* savepos = nullptr;
+    char* bufptr = buffer;
+    for (int tokenct = 1;; tokenct++) {
+      char* token = strtok_r (bufptr, " \t\n", &savepos);
+      bufptr = nullptr;
+      if (token == nullptr) break;
+      string_set::intern (token);
+    }
+    string fname = std::string(filename);
+    string tokFilename = fname.substr(0, fname.size()-3) + ".tok";
     const char* tokFile = tokFilename.c_str();
     outFile = fopen(tokFile, "w");
     int yy_rc = yyparse();
@@ -88,46 +92,36 @@ void cpp_pclose () {
 }
 
 void cpp_popen (const char* filename) {
-  printf("does");
   cpp_command = CPP + " " + filename;
   DEBUGF('c', "command=\"%s\"\n", cpp_command.c_str());
   yyin = popen (cpp_command.c_str(), "r");
-  printf("it");
   if (yyin == nullptr) {
     exit_status = EXIT_FAILURE;
     fprintf (stderr, "%s: %s: %s\n",
              exec::execname.c_str(), cpp_command.c_str(), strerror (errno));
   }else {
-    cpplines (yyin, filename);
-    int pclose_rc = pclose (yyin);
-    if (pclose_rc != 0) exit_status = EXIT_FAILURE;
+    cpplines (yyin, basefilename);
+    cpp_pclose();
   }
-
-  string strFilename = basefilename.substr(0, basefilename.size()-3) + ".str";
+  string fname = std::string(basefilename);
+  string strFilename = fname.substr(0, fname.size()-3) + ".str";
   const char* strFile = strFilename.c_str();
-  FILE* pipeout = fopen(strFile, "w");
+  FILE* pipeout = fopen(strFile, "w+");
   string_set::dump (pipeout);
   fclose (pipeout);
 
   symtable();
-  string symFilename = basefilename.substr(0, basefilename.size()-3) + ".sym";
+  string symFilename = fname.substr(0, fname.size()-3) + ".sym";
   const char* symFile = symFilename.c_str();
   outFile = fopen(symFile, "w");
   bool rc = semantic_analysis(parser::root, outFile);
   if(rc == false) exit_status = EXIT_FAILURE;
   fclose(outFile);
 
-  string astFilename = basefilename.substr(0, basefilename.size()-3) + ".ast";
+  string astFilename = fname.substr(0, fname.size()-3) + ".ast";
   const char* astFile = astFilename.c_str();
   outFile = fopen(astFile, "w");
   astree::print(outFile, parser::root);
-  fclose(outFile);
-
-  string oilFilename = basefilename.substr(0, basefilename.size()-3) + ".oil";
-  const char* oilFile = oilFilename.c_str();
-  outFile = fopen(oilFile, "w");
-  rc = traverse(parser::root);
-  if(rc == false) exit_status = EXIT_FAILURE;
   fclose(outFile);
 }
 
@@ -166,6 +160,7 @@ void scan_opts (int argc, char** argv) {
 
 int main (int argc, char** argv) {
   exit_status = EXIT_SUCCESS;
+
   scan_opts(argc, argv);
 
   return exit_status;
