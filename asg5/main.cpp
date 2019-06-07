@@ -56,28 +56,19 @@ void astree::print_tok (FILE* outfile, astree* tree) {
       tree->lexinfo->c_str());
 }
 
-void cpplines (FILE* pipe) {
+void cpplines (FILE* pipe, const char* filename) {
   int linenr = 1;
+  char inputname[LINESIZE];
+  strcpy (inputname, filename);
   for (;;) {
     char buffer[LINESIZE];
-    const char* fgets_rc = fgets (buffer, LINESIZE, pipe);
-    if (fgets_rc == nullptr) break;
+    char* fgets_rc = fgets (buffer, LINESIZE, pipe);
+    if (fgets_rc == NULL) break;
     chomp (buffer, '\n');
     char inputname[LINESIZE];
-    int sscanf_rc = sscanf (buffer, "# %d \"%[^\"]\"",
-                            &linenr, inputname);
-    if (sscanf_rc == 2) {
-      continue;
-    }
-    char* savepos = nullptr;
-    char* bufptr = buffer;
-    for (int tokenct = 1;; tokenct++) {
-      char* token = strtok_r (bufptr, " \t\n", &savepos);
-      bufptr = nullptr;
-      if (token == nullptr) break;
-      string_set::intern (token);
-    }
-    // string basefilename = std::string(filename);
+    sscanf (buffer, "# %d \"%[^\"]\"",
+            &linenr, inputname);
+
     string tokFilename = basefilename.substr(0, basefilename.size()-3) + ".tok";
     const char* tokFile = tokFilename.c_str();
     outFile = fopen(tokFile, "w");
@@ -107,23 +98,15 @@ void cpp_popen (const char* filename) {
     fprintf (stderr, "%s: %s: %s\n",
              exec::execname.c_str(), cpp_command.c_str(), strerror (errno));
   }else {
-    printf("get");
-    cpplines (yyin);
-    printf("here\n");
-    cpp_pclose();
-    printf("does it get here\n");
+    cpplines (yyin, filename);
+    int pclose_rc = pclose (yyin);
+    if (pclose_rc != 0) exit_status = EXIT_FAILURE;
   }
 
-  // string basefilename = std::string(basefilename);
-  printf("where");
   string strFilename = basefilename.substr(0, basefilename.size()-3) + ".str";
-  printf("is");
   const char* strFile = strFilename.c_str();
-  printf("the");
   FILE* pipeout = fopen(strFile, "w");
-  printf("problem");
   string_set::dump (pipeout);
-  printf("here");
   fclose (pipeout);
 
   symtable();
