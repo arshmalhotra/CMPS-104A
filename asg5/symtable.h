@@ -32,7 +32,7 @@ enum {
 
 using attr_bitset = bitset<ATTR_bitset_size>;
 
-using symbol_table = unordered_map<string, symbol*>;
+using symbol_table = unordered_map<string*, symbol*>;
 
 #include "auxlib.h"
 #include "lyutils.h"
