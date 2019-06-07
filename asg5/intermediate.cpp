@@ -561,7 +561,7 @@ void print_struct(astree* node) {
 
    fprintf(out, "struct s_%s {\n", (node->struct_name).c_str());
 
-   if(structs.find((node->struct_name)->c_str()) == structs.end())
+   if(structs.find(node->struct_name) == structs.end())
       return;
    if(node->children.size() > 1) {
       astree* list = node->children[1];
