@@ -421,7 +421,7 @@ bool type_check (astree* node) {
             return false;
          }
 
-         string name = *(node->children[0]->struct_name);
+         string name = node->children[0]->struct_name;
          if(fields.find(name) == fields.end()) {
             cerr << "Cannot reference field of undefined struct"
                << endl;
@@ -669,7 +669,7 @@ bool semantic_analysis (astree* node, FILE* out) {
          string* name =const_cast<string*>(node->children[0]->lexinfo);
          symbol* sym = new symbol;
          sym->attributes[ATTR_struct] = 1;
-         sym->struct_name = name;
+         sym->struct_name = *name;
          set_attributes(node, sym);
          sym->blocknr = GLOBAL;
          node->attributes = sym->attributes;
@@ -692,7 +692,7 @@ bool semantic_analysis (astree* node, FILE* out) {
                   if(structs.find(find) == structs.end()) {
                      cout << "Incomplete" << endl;
                      node2->children[i]->attributes[ATTR_struct] = 1;
-                     node2->children[i]->struct_name = find;
+                     node2->children[i]->struct_name = *find;
                   }
                }
                if(valid == false) break;
@@ -715,8 +715,8 @@ bool semantic_analysis (astree* node, FILE* out) {
                else
                   set_attributes(current, field_sym);
 
-               field_sym->struct_name = const_cast<string*>(
-                  current->lexinfo);
+               field_sym->struct_name = *(const_cast<string*>(
+                  current->lexinfo));
 
                field_sym->attributes[ATTR_field] = 1;
                field_sym->blocknr = GLOBAL;
@@ -825,7 +825,7 @@ bool semantic_analysis (astree* node, FILE* out) {
    }
 
    if(node->symbol == TOK_BLOCK
-      || node->symbol == TOK_FUNCTION
+      || node->symbol == TOK_FUNC
       || node->symbol == TOK_PROTO) {
 
       symbol_stack.pop_back();
