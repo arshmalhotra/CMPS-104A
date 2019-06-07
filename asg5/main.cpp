@@ -30,7 +30,7 @@ constexpr size_t LINESIZE = 1024;
 extern FILE* outFile;
 int exit_status;
 string cpp_command;
-char* basefilename;
+string basefilename;
 
 void print_usage() {
   errprintf ("Usage: %s [-ly] [-@(flags)...] [-D(string)] filename\n",
@@ -73,8 +73,8 @@ void cpplines (FILE* pipe, const char* filename) {
       if (token == nullptr) break;
       string_set::intern (token);
     }
-    string fname = std::string(filename);
-    string tokFilename = fname.substr(0, fname.size()-3) + ".tok";
+    // string basefilename = std::string(filename);
+    string tokFilename = basefilename.substr(0, basefilename.size()-3) + ".tok";
     const char* tokFile = tokFilename.c_str();
     outFile = fopen(tokFile, "w");
     int yy_rc = yyparse();
@@ -105,9 +105,9 @@ void cpp_popen (const char* filename) {
     cpp_pclose();
   }
 
-  string fname = std::string(basefilename);
+  // string basefilename = std::string(basefilename);
   printf("where");
-  string strFilename = fname.substr(0, fname.size()-3) + ".str";
+  string strFilename = basefilename.substr(0, basefilename.size()-3) + ".str";
   printf("is");
   const char* strFile = strFilename.c_str();
   printf("the");
@@ -118,20 +118,20 @@ void cpp_popen (const char* filename) {
   fclose (pipeout);
 
   symtable();
-  string symFilename = fname.substr(0, fname.size()-3) + ".sym";
+  string symFilename = basefilename.substr(0, basefilename.size()-3) + ".sym";
   const char* symFile = symFilename.c_str();
   outFile = fopen(symFile, "w");
   bool rc = semantic_analysis(parser::root, outFile);
   if(rc == false) exit_status = EXIT_FAILURE;
   fclose(outFile);
 
-  string astFilename = fname.substr(0, fname.size()-3) + ".ast";
+  string astFilename = basefilename.substr(0, basefilename.size()-3) + ".ast";
   const char* astFile = astFilename.c_str();
   outFile = fopen(astFile, "w");
   astree::print(outFile, parser::root);
   fclose(outFile);
 
-  string oilFilename = fname.substr(0, fname.size()-3) + ".oil";
+  string oilFilename = basefilename.substr(0, basefilename.size()-3) + ".oil";
   const char* oilFile = oilFilename.c_str();
   outFile = fopen(oilFile, "w");
   rc = traverse(parser::root);
