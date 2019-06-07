@@ -44,7 +44,7 @@ struct symbol {
    attr_bitset attributes;
    vector<symbol*>* parameters = NULL;
    symbol_table* fields;
-   string struct_name = "";
+   string struct_name = NULL;
 };
 
 using symbol_entry = symbol_table::value_type;
