@@ -16,6 +16,7 @@ vector<symbol_table*> symbol_stack;
 int block_num = 0;
 vector<int> block_stack;
 
+vector<astree*> string_stack;
 
 void set_attributes (astree* node, symbol* sym) {
    sym->filenr = node->lloc.filenr;
@@ -41,7 +42,7 @@ void set_attributes (astree* node, symbol* sym) {
       }
       case TOK_TYPEID: {
          sym->attributes[ATTR_struct] = 1;
-         sym->struct_name = string(*(node->lexinfo));
+         sym->struct_name = const_cast<string*>(node->lexinfo);
          break;
       }
    }
@@ -107,9 +108,9 @@ void print_attributes (symbol* sym, string* name, FILE* out) {
    if (attr[ATTR_field] == 0) list += "{"+to_string(sym->blocknr)+"} ";
 
    if (attr[ATTR_field] == 1) {
-      list += "field {" + sym->struct_name + "} ";
+      list += "field {" + *(sym->struct_name) + "} ";
    } if (attr[ATTR_struct] == 1) {
-      list += "struct \"" + sym->struct_name + "\" ";
+      list += "struct \"" + *(sym->struct_name) + "\" ";
    } if (attr[ATTR_int] == 1) {
       list += "int ";
    } if (attr[ATTR_string] == 1) {
@@ -166,7 +167,7 @@ symbol* get_symbol (astree* node) {
 }
 
 bool matching(attr_bitset attr1, attr_bitset attr2,
-                              string struct1, string struct2) {
+                              string* struct1, string* struct2) {
    if((attr1[ATTR_null] && attr2[ATTR_struct])
    || (attr1[ATTR_struct] && attr2[ATTR_null])
    || (attr1[ATTR_null] && attr2[ATTR_string])
@@ -200,15 +201,47 @@ bool type_check (astree* node) {
          break;
       }
       case TOK_VOID: {
-         if(!(node->parent->symbol == TOK_FUNC)) {
+         if(!(node->parent->symbol == TOK_FUNCTION
+            || node->parent->symbol == TOK_PROTOTYPE)) {
             cerr << "Cannot have void in non-function" << endl;
+            return false;
+         }
+         break;
+      }
+      case TOK_VARDECL: {
+         astree* n;
+         if(node->children[0]->symbol != TOK_ARRAY)
+            n = node->children[0]->children[0];
+         else
+            n = node->children[0]->children[1];
+
+         if(!matching(n->attributes,
+            node->children[1]->attributes,
+            n->struct_name, node->children[1]->struct_name)) {
+            cerr << "Incompatible types" << endl;
+            return false;
+         }
+        break;
+      }
+      case TOK_RETURNVOID: {
+         node->attributes[ATTR_void] = 1;
+         astree* n = node;
+         while (n != NULL && n->symbol != TOK_FUNCTION) {
+            n = n->parent;
+         }
+         if (n == NULL) {
+            cerr << "Cannot have return outside of a function" << endl;
+            return false;
+         }
+         if(!n->children[0]->children[0]->attributes[ATTR_void]) {
+            cerr << "Incompatible return type" << endl;
             return false;
          }
          break;
       }
       case TOK_RET: {
          astree* n = node;
-         while (n != NULL && n->symbol != TOK_FUNC) {
+         while (n != NULL && n->symbol != TOK_FUNCTION) {
             n = n->parent;
          }
          if (n == NULL) {
@@ -233,11 +266,12 @@ bool type_check (astree* node) {
             cerr << "Incorrect assignment" << endl;
             return false;
          }
-         node->attributes[ATTR_string] = node->children[0]->attributes[ATTR_string];
-         node->attributes[ATTR_int] = node->children[0]->attributes[ATTR_int];
-         node->attributes[ATTR_struct] = node->children[0]->attributes[ATTR_struct];
-         node->attributes[ATTR_array] = node->children[0]->attributes[ATTR_array];
-         node->struct_name = node->children[0]->struct_name;
+         astree* n1 = node->children[0];
+         node->attributes[ATTR_string] = n1->attributes[ATTR_string];
+         node->attributes[ATTR_int] = n1->attributes[ATTR_int];
+         node->attributes[ATTR_struct] = n1->attributes[ATTR_struct];
+         node->attributes[ATTR_array] = n1->attributes[ATTR_array];
+         node->struct_name = n1->struct_name;
          node->attributes[ATTR_vreg] = 1;
          break;
       }
@@ -334,7 +368,7 @@ bool type_check (astree* node) {
          node->attributes[ATTR_vreg] = 1;
          break;
       }
-      case TOK_ASTRING: {
+      case TOK_NEWSTRING: {
          if(!node->children[1]->attributes[ATTR_int]) {
             cerr << "Size is not integer" << endl;
             return false;
@@ -343,7 +377,7 @@ bool type_check (astree* node) {
          node->attributes[ATTR_string] = 1;
          break;
       }
-      case IDENT: {
+      case TOK_IDENT: {
          string* name = const_cast<string*>(node->lexinfo);
          symbol* sym = get_symbol(node);
          if(sym == NULL) {
@@ -359,31 +393,33 @@ bool type_check (astree* node) {
          break;
       }
       case TOK_INDEX: {
-         if(!node->children[1]->attributes[ATTR_int]) {
+         astree* n1 = node->children[0];
+         astree* n2 = node->children[1];
+         if(!n2->attributes[ATTR_int]) {
             cerr << "Cannot access array without integer";
             return false;
          }
 
-         if(!(node->children[0]->attributes[ATTR_string])
-            && !(node->children[0]->attributes[ATTR_array])) {
+         if(!(n1->attributes[ATTR_string])
+            && !(n1->attributes[ATTR_array])) {
             cerr << "Not proper type for array access" << endl;
             return false;
          }
-         if(node->children[0]->attributes[ATTR_string]
-            && !node->children[0]->attributes[ATTR_array]) {
+         if(n1->attributes[ATTR_string]
+            && !n1->attributes[ATTR_array]) {
             node->attributes[ATTR_int] = 1;
          }
          else {
-            node->attributes[ATTR_int] = node->children[0]->attributes[ATTR_int];
-            node->attributes[ATTR_string] = node->children[0]->attributes[ATTR_string];
-            node->attributes[ATTR_struct] = node->children[0]->attributes[ATTR_struct];
+            node->attributes[ATTR_int] = n1->attributes[ATTR_int];
+            node->attributes[ATTR_string] =n1->attributes[ATTR_string];
+            node->attributes[ATTR_struct] =n1->attributes[ATTR_struct];
          }
 
          node->attributes[ATTR_array] = 0;
          node->attributes[ATTR_vaddr] = 1;
          node->attributes[ATTR_lval] = 1;
          node->attributes[ATTR_variable] = 0;
-         node->struct_name = node->children[1]->struct_name;
+         node->struct_name = n2->struct_name;
          break;
       }
       case '.': {
@@ -392,16 +428,22 @@ bool type_check (astree* node) {
             return false;
          }
 
-         string name = (node->children[0]->struct_name);
+         string name = *(node->children[0]->struct_name);
          if(fields.find(name) == fields.end()) {
-            cerr << "Cannot reference field of undefined struct" << endl;
+            cerr << "Cannot reference field of undefined struct"
+               << endl;
             return false;
          }
          symbol_table* str = fields.at(name);
 
          string* field_name = const_cast<string*>(
             node->children[1]->lexinfo);
-
+         if(str->find(field_name) == str->end()) {
+            cout << "Str name: " << name << endl;
+            cerr << "Cannot find field \""
+             << *field_name << "\" on struct" << endl;
+            return false;
+         }
          node->attributes = str->at(field_name)->attributes;
          node->struct_name = str->at(field_name)->struct_name;
 
@@ -416,17 +458,21 @@ bool type_check (astree* node) {
          node->attributes[ATTR_const] = 1;
          break;
       }
-      case TOK_STRINGCON: {
+      case TOK_STR_CONST: {
+         if(node->parent->symbol == TOK_VARDECL) {
+            string_stack.push_back(node->parent);
+         }
+
          node->attributes[ATTR_const] = 1;
          node->attributes[ATTR_string] = 1;
          break;
       }
-      case TOK_INTCON: {
+      case TOK_INT_CONST: {
          node->attributes[ATTR_const] = 1;
          node->attributes[ATTR_int] = 1;
          break;
       }
-      case TOK_CHARCON: {
+      case TOK_CHAR_CONST: {
          node->attributes[ATTR_const] = 1;
          node->attributes[ATTR_int] = 1;
          break;
@@ -439,13 +485,13 @@ bool type_check (astree* node) {
          node->attributes[ATTR_string] = 1;
          break;
       }
-      case TOK_ANARRAY: {
+      case TOK_NEWARRAY: {
          attr_bitset attrs = node->children[0]->attributes;
          if(attrs[ATTR_void]
             || attrs[ATTR_array]
             || attrs[ATTR_void]
             || (attrs[ATTR_struct]
-               && node->children[0]->struct_name == "")) {
+               && node->children[0]->struct_name == NULL)) {
             cerr << "Invalid array type" << endl;
             return false;
          }
@@ -472,7 +518,7 @@ bool semantic_analysis (astree* node, FILE* out) {
          symbol_stack.push_back(nullptr);
          break;
       }
-      case TOK_FUNC: {
+      case TOK_FUNCTION: {
          string* name = const_cast<string*>(
             node->children[0]->children[0]->lexinfo);
 
@@ -567,11 +613,70 @@ bool semantic_analysis (astree* node, FILE* out) {
          fprintf(out, "\n");
          break;
       }
+      case TOK_PROTOTYPE: {
+         astree* t0 = node->children[0];
+         string* name = const_cast<string*>(t0->children[0]->lexinfo);
+         if(t0->symbol == TOK_ARRAY)
+            name = const_cast<string*>(t0->children[1]->lexinfo);
+
+         if(identifiers.find(name) != identifiers.end()) {
+            if(identifiers[name]->attributes[ATTR_function] == 1) {
+               cerr << "Prototype already declared" << endl;
+               break;
+            }
+         }
+
+         if(symbol_stack.back() == nullptr) {
+            symbol_stack.pop_back();
+            symbol_stack.push_back(new symbol_table);
+         }
+
+         symbol* sym = setup_function(node);
+         sym->attributes[ATTR_prototype] = 1;
+
+         block_stack.push_back(next_block++);
+
+         sym->parameters = new vector<symbol*>;
+         if(t0->symbol == TOK_ARRAY) {
+            sym->attributes[ATTR_array] = 1;
+            t0->children[1]->attributes = sym->attributes;
+            t0->children[0]->attributes[ATTR_array] = 1;
+         }
+         else {
+            t0->children[0]->attributes = sym->attributes;
+         }
+
+         symbol_stack.push_back(new symbol_table);
+         astree* t1 = node->children[1];
+         for(uint i = 0; i < t1->children.size(); ++i) {
+            astree* current = node->children[1]->children[i];
+            symbol* param = setup_symbol(t1->children[i]);
+            param->attributes[ATTR_param] = 1;
+            sym->parameters->push_back(param);
+            current->children[0]->attributes = param->attributes;
+            current->children[0]->blocknr = param->blocknr;
+            current->children[0]->struct_name = param->struct_name;
+
+            string* param_name = const_cast<string*>(
+               current->children[0]->lexinfo);
+
+            symbol_entry param_entry (param_name, param);
+
+            symbol_stack.back()->insert(param_entry);
+         }
+         symbol_entry entry (name, sym);
+
+         symbol_stack.back()->insert(entry);
+         identifiers.insert(entry);
+
+         break;
+      }
       case TOK_STRUCT: {
+         astree* node2 = node->children[1];
          string* name =const_cast<string*>(node->children[0]->lexinfo);
          symbol* sym = new symbol;
          sym->attributes[ATTR_struct] = 1;
-         sym->struct_name = *name;
+         sym->struct_name = name;
          set_attributes(node, sym);
          sym->blocknr = GLOBAL;
          node->attributes = sym->attributes;
@@ -586,15 +691,15 @@ bool semantic_analysis (astree* node, FILE* out) {
 
          if(node->children.size() > 1) {
             for(uint i = 0;
-               i < node->children[1]->children.size();
-               ++i) {
+               i < node2->children.size(); ++i) {
 
-               astree* current = node->children[1]->children[i];
+               astree* current = node2->children[i];
                if(current->symbol == TOK_TYPEID) {
-                  if(structs.find(name) == structs.end()) {
-                     cerr << "No struct with given name" << endl;
-                     valid = false;
-                     break;
+                  string *find =const_cast<string*>(current->lexinfo);
+                  if(structs.find(find) == structs.end()) {
+                     cout << "Incomplete" << endl;
+                     node2->children[i]->attributes[ATTR_struct] = 1;
+                     node2->children[i]->struct_name = find;
                   }
                }
                if(valid == false) break;
@@ -603,29 +708,38 @@ bool semantic_analysis (astree* node, FILE* out) {
                string* field_name = const_cast<string*>(
                   current->children[0]->lexinfo);
 
-               if(current->symbol == TOK_ARRAY)
+
+               if(current->symbol == TOK_ARRAY) {
                   field_name = const_cast<string*>(
                      current->children[1]->lexinfo);
+               }
 
-               symbol* sym = new symbol;
+               symbol* field_sym = new symbol;
                if(current->symbol == TOK_ARRAY) {
-                  set_attributes(current->children[0], sym);
-                  sym->attributes[ATTR_array] = 1;
+                  set_attributes(current->children[0], field_sym);
+                  field_sym->attributes[ATTR_array] = 1;
                }
                else
-                  set_attributes(current, sym);
-               sym->attributes[ATTR_field] = 1;
-               sym->struct_name = *(const_cast<string*>(
-                  current->lexinfo));
+                  set_attributes(current, field_sym);
 
-               sym->attributes[ATTR_field] = 1;
-               sym->blocknr = GLOBAL;
-               symbol_entry field (field_name, sym);
+               field_sym->struct_name = const_cast<string*>(
+                  current->lexinfo);
+
+               field_sym->attributes[ATTR_field] = 1;
+               field_sym->blocknr = GLOBAL;
+               symbol_entry field (field_name, field_sym);
                tbl->insert(field);
 
-               print_attributes(sym, field_name, out);
-               current->children[0]->attributes = sym->attributes;
-               current->children[0]->struct_name = *name;
+               print_attributes(field_sym, field_name, out);
+               if(current->symbol == TOK_ARRAY) {
+                  current->children[1]->attributes =
+                     field_sym->attributes;
+                  current->children[1]->struct_name = sym->struct_name;
+               } else {
+                  current->children[0]->attributes =
+                     field_sym->attributes;
+                  current->children[0]->struct_name = sym->struct_name;
+               }
             }
          }
          pair <string, symbol_table*> str (*name, tbl);
@@ -633,6 +747,66 @@ bool semantic_analysis (astree* node, FILE* out) {
          sym->fields = tbl;
 
          fprintf(out, "\n");
+         break;
+      }
+      case TOK_VARDECL: {
+
+         if(symbol_stack.back() == nullptr) {
+            symbol_stack.back() = new symbol_table;
+         }
+
+
+         string* name = const_cast<string*>(
+            node->children[0]->children[0]->lexinfo);
+
+         if(node->children[0]->symbol == TOK_ARRAY)
+            name = const_cast<string*>(
+               node->children[0]->children[1]->lexinfo);
+
+         if(in_scope_find_var(name)) {
+            cerr << "Variable already declared in this scope" << endl;
+            return false;
+         }
+
+         symbol* sym = new symbol;
+         if(node->children[1]->symbol == TOK_IDENT) {
+            string* find_name = const_cast<string*>(
+               node->children[1]->lexinfo);
+
+            if(!find_var(find_name)) {
+               cerr << "Variable assignment not valid" << endl;
+               break;
+            }
+            symbol* assignee = get_symbol(node->children[1]);
+
+            set_attributes(node->children[0], sym);
+            sym->attributes = assignee->attributes;
+
+            sym->struct_name = assignee->struct_name;
+            sym->parameters = assignee->parameters;
+            sym->fields = assignee->fields;
+         }
+         else {
+            if(node->children[0]->symbol == TOK_ARRAY) {
+               sym = setup_symbol(node->children[0]->children[0]);
+               sym->attributes[ATTR_array] = 1;
+            }
+            else
+               sym = setup_symbol(node->children[0]);
+         }
+
+         symbol_entry entry (name, sym);
+         symbol_stack.back()->insert(entry);
+         astree* t0 = node->children[0];
+         if(t0->symbol == TOK_ARRAY) {
+            t0->children[1]->attributes = sym->attributes;
+            t0->children[1]->struct_name = sym->struct_name;
+            t0->children[0]->attributes[ATTR_array] = 1;
+         } else {
+            t0->children[0]->attributes = sym->attributes;
+            t0->children[0]->struct_name = sym->struct_name;
+         }
+         print_attributes(sym, name, out);
          break;
       }
       default: break;
@@ -645,8 +819,9 @@ bool semantic_analysis (astree* node, FILE* out) {
 
    bool rc = type_check(node);
    if(rc == false) return false;
+
    switch (node->symbol) {
-      case IDENT: {
+      case TOK_IDENT: {
          string* name = const_cast<string*>(node->lexinfo);
          if(find_var(name) == false) {
             cerr << "Variable not declared previously" << endl;
@@ -657,7 +832,8 @@ bool semantic_analysis (astree* node, FILE* out) {
    }
 
    if(node->symbol == TOK_BLOCK
-      || node->symbol == TOK_FUNC) {
+      || node->symbol == TOK_FUNCTION
+      || node->symbol == TOK_PROTOTYPE) {
 
       symbol_stack.pop_back();
       block_stack.pop_back();

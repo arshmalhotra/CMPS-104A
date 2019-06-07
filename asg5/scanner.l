@@ -42,16 +42,16 @@ CHAR            ('([^\\'\n]|\\[\\'"0nt])')
 [ \t]+          { }
 \n              { scanner::newline(); }
 
-(if)            { return scanner_token (TOK_IF); }
-(else)          { return scanner_token (TOK_ELSE); }
-(while)         { return scanner_token (TOK_WHILE); }
-(return)        { return scanner_token (TOK_RET); }
-(int)           { return scanner_token (TOK_INT); }
-(string)        { return scanner_token (TOK_STRING); }
-(struct)        { return scanner_token (TOK_STRUCT); }
-(void)          { return scanner_token (TOK_VOID); }
-(new)           { return scanner_token (TOK_NEW); }
-(null)          { return scanner_token (TOK_NULL); }
+("if")            { return scanner_token (TOK_IF); }
+("else")          { return scanner_token (TOK_ELSE); }
+("while")         { return scanner_token (TOK_WHILE); }
+("return")        { return scanner_token (TOK_RET); }
+("int")           { return scanner_token (TOK_INT); }
+("string")        { return scanner_token (TOK_STRING); }
+("struct")        { return scanner_token (TOK_STRUCT); }
+("void")          { return scanner_token (TOK_VOID); }
+("new")           { return scanner_token (TOK_NEW); }
+("null")          { return scanner_token (TOK_NULL); }
 
 (<=)            { return scanner_token (TOK_LEQ); }
 (>=)            { return scanner_token (TOK_GEQ); }
@@ -69,21 +69,20 @@ CHAR            ('([^\\'\n]|\\[\\'"0nt])')
 "-"             { return scanner_token ('-'); }
 "*"             { return scanner_token ('*'); }
 "/"             { return scanner_token ('/'); }
-"%"             { return scanner_token ('%'); }
-"<"             { return scanner_token ('<'); }
-">"             { return scanner_token ('>'); }
-","             { return scanner_token (','); }
+"^"             { return scanner_token ('^'); }
 "("             { return scanner_token ('('); }
 ")"             { return scanner_token (')'); }
+";"             { return scanner_token (';'); }
+"<"             { return scanner_token ('<'); }
+">"             { return scanner_token ('>'); }
+"."             { return scanner_token ('.'); }
+","             { return scanner_token (','); }
+"%"             { return scanner_token ('%'); }
+"!"             { return scanner_token ('!'); }
 "["             { return scanner_token ('['); }
 "]"             { return scanner_token (']'); }
 "{"             { return scanner_token ('{'); }
 "}"             { return scanner_token ('}'); }
-";"             { return scanner_token (';'); }
-
-"'"             { return scanner_token ('\''); }
-"\""            { return scanner_token ('"'); }
-"\\"            { return scanner_token ('\\'); }
 
 {NOTNUMBER}     { scanner::badtoken (NUMBER);
                   return scanner_token (NUMBER); }
