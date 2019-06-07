@@ -667,7 +667,7 @@ bool semantic_analysis (astree* node, FILE* out) {
    if(rc == false) return false;
 
    switch (node->symbol) {
-      case TOK_IDENT: {
+      case IDENT: {
          string* name = const_cast<string*>(node->lexinfo);
          if(find_var(name) == false) {
             cerr << "Variable not declared previously" << endl;
