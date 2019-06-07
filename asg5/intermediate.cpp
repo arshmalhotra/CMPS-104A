@@ -451,7 +451,7 @@ string traverse_block(astree* node) {
 
          traverse_block(node->children[0]).c_str(),
             (node->children[0]->struct_name).c_str(),
-            (node->children[1]->lexinfo).c_str());
+            (node->children[1]->lexinfo)->c_str());
 
          return "(*"+vreg+")";
       }
@@ -564,7 +564,7 @@ void print_struct(astree* node) {
    fprintf(out, "struct s_%s {\n", (node->struct_name).c_str());
 
    // May not be a necessary check
-   if(structs.find(*(node->struct_name)) == structs.end())
+   if(structs.find(node->struct_name) == structs.end())
       return;
    if(node->children.size() > 1) {
       astree* list = node->children[1];
