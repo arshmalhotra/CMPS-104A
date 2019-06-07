@@ -127,10 +127,10 @@ void cpp_popen (const char* filename) {
 
   string oilFilename = fname.substr(0, fname.size()-3) + ".oil";
   const char* oilFile = oilFilename.c_str();
-  outFile = fopen(oilFile, "w");
-  rc = semantic_analysis(parser::root, outFile);
+  out = fopen(oilFile, "w");
+  rc = traverse(parser::root);
   if(rc == false) exit_status = EXIT_FAILURE;
-  fclose(outFile);
+  fclose(out);
 }
 
 void scan_opts (int argc, char** argv) {
