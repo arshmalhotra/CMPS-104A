@@ -42,7 +42,7 @@ void set_attributes (astree* node, symbol* sym) {
       }
       case TOK_TYPEID: {
          sym->attributes[ATTR_struct] = 1;
-         sym->struct_name = const_cast<string*>(node->lexinfo);
+         sym->struct_name = string(*(node->lexinfo));
          break;
       }
    }
@@ -108,9 +108,9 @@ void print_attributes (symbol* sym, string* name, FILE* out) {
    if (attr[ATTR_field] == 0) list += "{"+to_string(sym->blocknr)+"} ";
 
    if (attr[ATTR_field] == 1) {
-      list += "field {" + *(sym->struct_name) + "} ";
+      list += "field {" + sym->struct_name + "} ";
    } if (attr[ATTR_struct] == 1) {
-      list += "struct \"" + *(sym->struct_name) + "\" ";
+      list += "struct \"" + sym->struct_name + "\" ";
    } if (attr[ATTR_int] == 1) {
       list += "int ";
    } if (attr[ATTR_string] == 1) {
@@ -167,7 +167,7 @@ symbol* get_symbol (astree* node) {
 }
 
 bool matching(attr_bitset attr1, attr_bitset attr2,
-                              string* struct1, string* struct2) {
+                              string struct1, string struct2) {
    if((attr1[ATTR_null] && attr2[ATTR_struct])
    || (attr1[ATTR_struct] && attr2[ATTR_null])
    || (attr1[ATTR_null] && attr2[ATTR_string])
