@@ -93,7 +93,6 @@ void cpp_pclose () {
 }
 
 void cpp_popen (const char* filename) {
-  printf("where");
   cpp_command = CPP + " " + filename;
   DEBUGF('c', "command=\"%s\"\n", cpp_command.c_str());
   yyin = popen (cpp_command.c_str(), "r");
@@ -102,19 +101,22 @@ void cpp_popen (const char* filename) {
     fprintf (stderr, "%s: %s: %s\n",
              exec::execname.c_str(), cpp_command.c_str(), strerror (errno));
   }else {
-    printf("does");
     cpplines (yyin, basefilename);
-    printf("it");
     cpp_pclose();
-    printf("go\n");
   }
+
   string fname = std::string(basefilename);
+  printf("where");
   string strFilename = fname.substr(0, fname.size()-3) + ".str";
+  printf("is");
   const char* strFile = strFilename.c_str();
-  FILE* pipeout = fopen(strFile, "w+");
+  printf("the");
+  FILE* pipeout = fopen(strFile, "w");
+  printf("problem");
   string_set::dump (pipeout);
+  printf("here");
   fclose (pipeout);
-printf("what");
+
   symtable();
   string symFilename = fname.substr(0, fname.size()-3) + ".sym";
   const char* symFile = symFilename.c_str();
@@ -122,13 +124,13 @@ printf("what");
   bool rc = semantic_analysis(parser::root, outFile);
   if(rc == false) exit_status = EXIT_FAILURE;
   fclose(outFile);
-printf("is");
+
   string astFilename = fname.substr(0, fname.size()-3) + ".ast";
   const char* astFile = astFilename.c_str();
   outFile = fopen(astFile, "w");
   astree::print(outFile, parser::root);
   fclose(outFile);
-printf("going");
+
   string oilFilename = fname.substr(0, fname.size()-3) + ".oil";
   const char* oilFile = oilFilename.c_str();
   outFile = fopen(oilFile, "w");
@@ -164,17 +166,14 @@ void scan_opts (int argc, char** argv) {
   if (optind > argc) {
     print_usage();
   }
-  printf("do basename\n");
   exec::execname = basename (argv[0]);
   const char* filename = optind == argc ? "-" : argv[optind];
   basefilename = basename(argv[optind]);
-  printf("done basename\n");
   cpp_popen (filename);
 }
 
 int main (int argc, char** argv) {
   exit_status = EXIT_SUCCESS;
-printf("start\n");
   scan_opts(argc, argv);
 
   return exit_status;
