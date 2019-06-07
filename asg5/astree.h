@@ -28,7 +28,7 @@ struct astree {
   vector<astree*> children;
   astree* parent;
   attr_bitset attributes;
-  string struct_name = NULL;
+  string struct_name = "";
   int blocknr;
 
   astree (int symbol, const location&, const char* lexinfo);
