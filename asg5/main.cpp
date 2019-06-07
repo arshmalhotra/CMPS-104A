@@ -93,6 +93,7 @@ void cpp_pclose () {
 }
 
 void cpp_popen (const char* filename) {
+  printf("where");
   cpp_command = CPP + " " + filename;
   DEBUGF('c', "command=\"%s\"\n", cpp_command.c_str());
   yyin = popen (cpp_command.c_str(), "r");
@@ -101,8 +102,11 @@ void cpp_popen (const char* filename) {
     fprintf (stderr, "%s: %s: %s\n",
              exec::execname.c_str(), cpp_command.c_str(), strerror (errno));
   }else {
+    printf("does");
     cpplines (yyin, basefilename);
+    printf("it");
     cpp_pclose();
+    printf("go\n");
   }
   string fname = std::string(basefilename);
   string strFilename = fname.substr(0, fname.size()-3) + ".str";
@@ -160,15 +164,17 @@ void scan_opts (int argc, char** argv) {
   if (optind > argc) {
     print_usage();
   }
+  printf("do basename\n");
   exec::execname = basename (argv[0]);
   const char* filename = optind == argc ? "-" : argv[optind];
   basefilename = basename(argv[optind]);
+  printf("done basename\n");
   cpp_popen (filename);
 }
 
 int main (int argc, char** argv) {
   exit_status = EXIT_SUCCESS;
-
+printf("start\n");
   scan_opts(argc, argv);
 
   return exit_status;
