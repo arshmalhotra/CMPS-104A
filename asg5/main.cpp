@@ -110,7 +110,7 @@ void cpp_popen (const char* filename) {
   FILE* pipeout = fopen(strFile, "w+");
   string_set::dump (pipeout);
   fclose (pipeout);
-
+printf("what");
   symtable();
   string symFilename = fname.substr(0, fname.size()-3) + ".sym";
   const char* symFile = symFilename.c_str();
@@ -118,13 +118,13 @@ void cpp_popen (const char* filename) {
   bool rc = semantic_analysis(parser::root, outFile);
   if(rc == false) exit_status = EXIT_FAILURE;
   fclose(outFile);
-
+printf("is");
   string astFilename = fname.substr(0, fname.size()-3) + ".ast";
   const char* astFile = astFilename.c_str();
   outFile = fopen(astFile, "w");
   astree::print(outFile, parser::root);
   fclose(outFile);
-
+printf("going");
   string oilFilename = fname.substr(0, fname.size()-3) + ".oil";
   const char* oilFile = oilFilename.c_str();
   outFile = fopen(oilFile, "w");
