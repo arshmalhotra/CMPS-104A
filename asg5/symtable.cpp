@@ -484,7 +484,7 @@ bool type_check (astree* node) {
             || attrs[ATTR_array]
             || attrs[ATTR_void]
             || (attrs[ATTR_struct]
-               && node->children[0]->struct_name == NULL)) {
+               && node->children[0]->struct_name == "")) {
             cerr << "Invalid array type" << endl;
             return false;
          }
