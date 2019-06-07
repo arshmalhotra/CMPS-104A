@@ -1,3 +1,10 @@
+// CMPS104A
+// ASSIGNMENT: ASG5
+// NAME 1: Shlok Gharia
+// EMAIL 1: sgharia@ucsc.edu
+// NAME 2: Arsh Malhotra
+// EMAIL 2: amalhot3@ucsc.edu
+
 #include "symtable.h"
 
 symbol_table structs;
