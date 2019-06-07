@@ -1,8 +1,9 @@
-// main.cpp
-// Travis Takai
-// 1375886
-// ttakai@ucsc.edu
-// CS104a
+// CMPS104A
+// ASSIGNMENT: ASG4
+// NAME 1: Shlok Gharia
+// EMAIL 1: sgharia@ucsc.edu
+// NAME 2: Arsh Malhotra
+// EMAIL 2: amalhot3@ucsc.edu
 
 #include <string>
 #include <iostream>
@@ -17,33 +18,39 @@
 #include <ctype.h>
 #include <unistd.h>
 
-// #include "auxlib.h"
 #include "string_set.h"
 #include "lyutils.h"
 #include "intermediate.h"
 
 using namespace std;
 
-string targetFile;
 string CPP = "/usr/bin/cpp -nostdinc";
 constexpr size_t LINESIZE = 1024;
+extern FILE* outFile;
+int exit_status;
+string cpp_command;
+char* basefilename;
 extern int yy_flex_debug;
 extern int yydebug;
 extern FILE* yyin;
 extern FILE* outFile;
 extern FILE* out;
 
-int exit_status;
-// Chomp the last character from a buffer if it is delim.
+void print_usage() {
+  errprintf ("Usage: %s [-ly] [-@(flags)...] [-D(string)] filename\n",
+             exec::execname.c_str());
+  exit (EXIT_FAILURE);
+}
+
 void chomp (char* string, char delim) {
-   size_t len = strlen (string);
-   if (len == 0) return;
-   char* nlpos = string + len - 1;
-   if (*nlpos == delim) *nlpos = '\0';
+  size_t len = strlen (string);
+  if (len == 0) return;
+  char* nlpos = string + len - 1;
+  if (*nlpos == delim) *nlpos = '\0';
 }
 
 void astree::print_tok (FILE* outfile, astree* tree) {
-   fprintf (outfile, "\t%zd  %zd.%zd  %d  %s  (%s)\n",
+   fprintf (outfile, "%zd  %zd.%zd  %d  %s  (%s)\n",
       tree->lloc.filenr, tree->lloc.linenr, tree->lloc.offset,
       tree->symbol, parser::get_tname (tree->symbol),
       tree->lexinfo->c_str());
@@ -76,89 +83,89 @@ void cpplines (FILE* pipe, const char* filename) {
    }
 }
 
+void cpp_pclose () {
+  int pclose_rc = pclose (yyin);
+  if (pclose_rc != 0) exec::exit_status = EXIT_FAILURE;
+}
+
+void cpp_popen (const char* filename) {
+  cpp_command = CPP + " " + filename;
+  DEBUGF('c', "command=\"%s\"\n", cpp_command.c_str());
+  yyin = popen (cpp_command.c_str(), "r");
+  if (yyin == nullptr) {
+    exit_status = EXIT_FAILURE;
+    fprintf (stderr, "%s: %s: %s\n",
+             exec::execname.c_str(), cpp_command.c_str(), strerror (errno));
+  }else {
+    cpplines (yyin, basefilename);
+    cpp_pclose();
+  }
+  string fname = std::string(basefilename);
+  string strFilename = fname.substr(0, fname.size()-3) + ".str";
+  const char* strFile = strFilename.c_str();
+  FILE* pipeout = fopen(strFile, "w+");
+  string_set::dump (pipeout);
+  fclose (pipeout);
+
+  symtable();
+  string symFilename = fname.substr(0, fname.size()-3) + ".sym";
+  const char* symFile = symFilename.c_str();
+  outFile = fopen(symFile, "w");
+  bool rc = semantic_analysis(parser::root, outFile);
+  if(rc == false) exit_status = EXIT_FAILURE;
+  fclose(outFile);
+
+  string astFilename = fname.substr(0, fname.size()-3) + ".ast";
+  const char* astFile = astFilename.c_str();
+  outFile = fopen(astFile, "w");
+  astree::print(outFile, parser::root);
+  fclose(outFile);
+
+  string oilFilename = fname.substr(0, fname.size()-3) + ".oil";
+  const char* oilFile = oilFilename.c_str();
+  out = fopen(oilFile, "w");
+  rc = traverse(parser::root);
+  if(rc == false) exit_status = EXIT_FAILURE;
+  fclose(out);
+}
+
+void scan_opts (int argc, char** argv) {
+  opterr = 0;
+  yy_flex_debug = 0;
+  yydebug = 0;
+  int option;
+  while((option = getopt (argc, argv, "@:D:ly")) != EOF) {
+    switch (option) {
+      case 'l':
+        yy_flex_debug = 1;
+        break;
+      case 'y':
+        yydebug = 1;
+        break;
+      case 'D':
+        CPP = CPP + " -D " + optarg;
+        break;
+      case '@':
+        set_debugflags(optarg);
+        break;
+      default:
+        errprintf ("bad option (%c)\n", optopt);
+        break;
+    }
+  }
+  if (optind > argc) {
+    print_usage();
+  }
+  exec::execname = basename (argv[0]);
+  const char* filename = optind == argc ? "-" : argv[optind];
+  basefilename = basename(argv[optind]);
+  cpp_popen (filename);
+}
+
 int main (int argc, char** argv) {
-   exit_status = EXIT_SUCCESS;
-   yy_flex_debug = 0;
-   yydebug = 0;
-   exec::execname = basename (argv[0]);
+  exit_status = EXIT_SUCCESS;
 
-   int option;
-   while ((option = getopt(argc, argv, "@:D:ly")) != -1) {
-      switch (option) {
-         case '@': set_debugflags(optarg); break;
-         case 'l': yy_flex_debug = 1; break;
-         case 'y': yydebug = 1; break;
-         case 'D': CPP = CPP + " -D " + optarg; break;
-         default : perror("Usage: oc [-ly] [-@ flag ...] \
-      [-D string] program.oc\n"); break;
-      }
-   }
-   if (optind  > argc) {
-      errprintf ("Usage: oc [-ly] [-@ flag ...] \
-      [-D string] program.oc\n");
-      exit (exit_status);
-   }
+  scan_opts(argc, argv);
 
-   targetFile = basename(argv[optind]);
-   // Check that the file provided has .oc ending
-   if(targetFile.find(".oc") == string::npos) {
-      perror("Usage: oc [-ly] [-@ flag ...] [-D string] program.oc\n");
-      exit(exit_status);
-   }
-   // Check if file exists
-   if (FILE *file = fopen(argv[optind], "r")) {
-      fclose(file);
-   } else {
-      perror("Please use previously created .oc file\n");
-      exit(1);
-   }
-
-   const char* execname = basename (argv[0]);
-   char* filename = argv[optind];
-   string command = CPP + " " + filename;
-   DEBUGF('c', "command=\"%s\"\n", command.c_str());
-   yyin = popen (command.c_str(), "r");
-   if (yyin == NULL) {
-      exit_status = EXIT_FAILURE;
-      fprintf (stderr, "%s: %s: %s\n",
-               execname, command.c_str(), strerror (errno));
-   } else {
-      cpplines (yyin, filename);
-      int pclose_rc = pclose (yyin);
-      if (pclose_rc != 0) exit_status = EXIT_FAILURE;
-   }
-
-   // Create and open .str file
-   string name = targetFile.substr(0, targetFile.size()-3) + ".str";
-   const char* fname = name.c_str();
-   FILE* outFile = fopen(fname, "w");
-   string_set::dump(outFile);
-   fclose(outFile);
-
-   // Type checking and symbol table setup/output
-   symtable();
-   name = targetFile.substr(0, targetFile.size()-3) + ".sym";
-   fname = name.c_str();
-   outFile = fopen(fname, "w");
-   bool rc = semantic_analysis(parser::root, outFile);
-   if(rc == false) exit_status = EXIT_FAILURE;
-   fclose(outFile);
-
-
-   // Create and open .ast file
-   name = targetFile.substr(0, targetFile.size()-3) + ".ast";
-   fname = name.c_str();
-   out = fopen(fname, "w");
-   astree::print(out, parser::root);
-   fclose(out);
-
-   // Create and open .oil file
-   name = targetFile.substr(0, targetFile.size()-3) + ".oil";
-   fname = name.c_str();
-   out = fopen(fname, "w");
-   rc = traverse(parser::root);
-   if(rc == false) exit_status = EXIT_FAILURE;
-   fclose(out);
-
-   return exit_status;
+  return exit_status;
 }
