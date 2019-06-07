@@ -110,14 +110,15 @@ function  : decl '('  ')' block       { $3->swap(TOK_FUNC);
                                         $2->swap(TOK_PARAM);
                                         $2->adopt($3);
                                         $$ = $4->adopt($1, $2, $5); }
-          | decl '(' decls ')' ';'    { $4->swap(TOK_PROTO);
+          | decl '(' decls ')' ';'    { destroy($5);
+                                        $4->swap(TOK_PROTO);
                                         $2->swap(TOK_PARAM);
                                         $2->adopt($3);
-                                        $$ = $4->adopt($1, $2, $5); }
-          | decl '(' ')' ';'          { $4->swap(TOK_PROTO);
+                                        $$ = $4->adopt($1, $2); }
+          | decl '(' ')' ';'          { destroy($4);
+                                        $3->swap(TOK_PROTO);
                                         $2->swap(TOK_PARAM);
-                                        $2->adopt($3);
-                                        $$ = $4->adopt($1, $2, $5); }
+                                        $$ = $3->adopt($1, $2); }
           ;
 
 decls     : decl ',' decls            { destroy($2);
