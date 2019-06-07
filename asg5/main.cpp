@@ -42,7 +42,7 @@ void chomp (char* string, char delim) {
    if (*nlpos == delim) *nlpos = '\0';
 }
 
-void astree::pretty_print (FILE* outfile, astree* tree) {
+void astree::print_tok (FILE* outfile, astree* tree) {
    fprintf (outfile, "\t%zd  %zd.%zd  %d  %s  (%s)\n",
       tree->lloc.filenr, tree->lloc.linenr, tree->lloc.offset,
       tree->symbol, parser::get_tname (tree->symbol),
